@@ -23,12 +23,25 @@ CSV_WEIGHT_FREQUENT = "weightsFrequent.csv"
 
 log_file ="graph_analysis.log" 
 
+nodeNameList={}
    
 args_size=0  
 graph_path = ""
 
 NODE_INDEX=0
 NODE_DETAILES_INDEX=1
+    
+   
+def test2( graph  ):
+   print graph.edges()[0][0]
+   #print graph[graph.edges()[0][0]][graph.edges()[0][1]]['weight'] 
+   #for edge in  graph.edges_iter():
+   #    print graph[edge[0]][edge[1]]['weight']
+   
+def test(grpah,index):
+    print nx.info(grpah, index)
+    
+
     
 def LOG(strMsg):
     logging.debug(strMsg)
@@ -39,6 +52,20 @@ def StartLog():
     logging.basicConfig(filename=log_file,level=logging.DEBUG)
     #msg = "starting run: ",datetime.datetime.now()
     #LOG(msg)    
+
+      
+    
+def FillNodeName(graph):
+    global nodeNameList
+    nodeNameList = nx.get_node_attributes(graph, 'name')
+    print  "index_name have been init with " ,len(nodeNameList)
+    #print nodeNameList  
+
+
+def Init(graph):
+    StartLog()
+    FillNodeName(graph)
+    
     
 #def closeLog():
 #    if empty_nodes > 0:
@@ -58,6 +85,14 @@ def LoadGraph(path):
 def printLine():
     print "========================================================================"
 
+
+def GetNodeName(index,graph):
+    if index != None:
+        #print index
+        if nodeNameList.has_key(index):
+            return nodeNameList.get(index) 
+    return None
+
 def SaveStatistics2File(filePath ,header, dictionary):
     if os.path.exists(filePath):
         os.remove(filePath)
@@ -68,8 +103,6 @@ def SaveStatistics2File(filePath ,header, dictionary):
         writer.writerow([k,v])
     csvFile.close()
   
-        
-
 def DegreeAnayltor(graph):
     empty_nodes=0
     zeroDegree =0
@@ -82,7 +115,7 @@ def DegreeAnayltor(graph):
     count=0
     printLine()
     print "analyze node degree distribution ..."
-    for node in nx.get_node_attributes(graph, 'name').iteritems():
+    for node in nodeNameList.iteritems():
         deg = graph.degree(node[NODE_INDEX])
         name = node[1]
         if deg > 0 and name:
@@ -122,23 +155,6 @@ def DegreeAnayltor(graph):
     print "the node with the minimum degree is  " ,GetNodeName(minIndex,graph) , "with " ,minDegree," degree "
     print "the average degree in the graph is %d" % avgDeg
    
-   
-def GetNodeName(index,graph):
-    if index != None:
-        return nx.get_node_attributes(graph, 'name').get(index) 
-    return None
-    
-def test2():
-    a =""
-    b=" fko"
-    if a :
-        print a
-    else :
-        print b          
-
-def test(grpah,index):
-    print nx.info(grpah, index)
-    
     
 def EdgesAnayltor(graph):
     maxWeight = 0
@@ -146,45 +162,58 @@ def EdgesAnayltor(graph):
     maxIndex =None
     count =0.0
     printLine()
+    #print "node list:"
+    #print nodeNameList
     print "analyzing weight distribution..." 
-    allWeights =  nx.get_edge_attributes(graph,"weight").items()
-    countWeight = len (allWeights)
-    old_num =0
-    minWeight =allWeights[0][1]  
-    for weight in  allWeights:
-        count=count+1
-        num_num= round((count/countWeight)*100)
-        if num_num!=old_num:
-            old_num=num_num
-            if num_num %10 == 0:
-                sys.stdout.write(".")
-        if weight[1] in weightDist :
-            weightDist[weight[1]]  = weightDist[weight[1]]+1 
+    #allWeights =  nx.get_edge_attributes(graph,"weight").items()
+    
+    countWeight =0 # len (allWeights)
+    #old_num =0
+    minWeight = graph[graph.edges()[0][0]][graph.edges()[0][1]]['weight'] 
+    for edge in   graph.edges_iter():
+        weight = graph[edge[0]][edge[1]]['weight']
+        #count=count+1
+        #num_num= round((count/countWeight)*100)
+        #if num_num!=old_num:
+        #   old_num=num_num
+        #   if num_num %10 == 0:
+        #      sys.stdout.write(".")
+        if weight in weightDist :
+            weightDist[weight]  = weightDist[weight]+1 
         else:
-            weightDist[weight[1]] = 1   
-        sumWeight = sumWeight + weight[1]
-        if weight[0][0] != weight[0][1] and GetNodeName(weight[0][0],graph)!= None and GetNodeName(weight[0][1],graph) != None:
-            if weight[1] >  maxWeight :
-                maxWeight = weight[1]
-                maxIndex = weight[0]
-            if minWeight  > weight[1]:
-                minWeight = weight[1]
-        
-            
+            weightDist[weight] = 1   
+        name1= GetNodeName(edge[0],graph)
+        name2= GetNodeName(edge[1],graph)
+        if  name1!= None and name2 != None and name1 != name2:
+            #print "ok"
+            sumWeight = sumWeight + weight
+            countWeight = countWeight+1
+            if weight >  maxWeight :
+                maxWeight = weight
+                maxIndex = edge
+            if minWeight  > weight:
+                minWeight = weight
+                
+              
     avgWeight = sumWeight/countWeight
     print "...done!!"
     print  "the avg of the weight is" ,avgWeight  #, " the sumWeight is " , sumWeight
     #print "the srongest link is", maxWeight , " between ",nx.get_node_attributes(graph, "name")[weight[0][0]] ," to " ,nx.get_node_attributes(graph, "name")[weight[0][1]]    #need to fix this!!!     
     print "the srongest link is", maxWeight , "between",GetNodeName(maxIndex[0],graph) ,"to" ,GetNodeName(maxIndex[1],graph) 
     print "the minimal weight is",minWeight
-    allWeights.sort()
+    allweights  = weightDist.keys()
+    allweights.sort()
     SaveStatistics2File(CSV_WEIGHT_FREQUENT,['edge weight','frequent'],weightDist)
-    #print allWeights
+    index =(len(allweights)/2)
+    print index 
+    #print allweights
     #print "countWieght = %d" % countWeight
-    print "the median is : %d " % allWeights[(countWeight/2)][1]  
+    print "the median is : %d " % allweights[index]  
     #sorted(allWeights)
     
 def  NodeDegreeCorrelation(graph):
+    if len(nodeNameList)==0:
+        FillNodeName(graph)
     printLine()
     genCount = 0.0
     missCorrel = 0.0;
@@ -222,14 +251,15 @@ def  NodeDegreeCorrelation(graph):
 if len(sys.argv) > 1 :
     graph_path = sys.argv[1] 
 
-StartLog()    
 print "loading graph...graphPath=%s" % graph_path
 graph = LoadGraph(graph_path)
-       
+#test2(graph)
+Init(graph)
 
 DegreeAnayltor(graph)
-EdgesAnayltor(graph)
 NodeDegreeCorrelation(graph)
+EdgesAnayltor(graph)
+#
 #test(graph,'i.1222180848')
 
 
