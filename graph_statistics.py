@@ -3,8 +3,11 @@ import networkx as nx
 import os
 import csv
 import logging
+from utils import SaveStatistics2File  
+from utils import GetNodeName
 
-#if __name__ == '__main__':
+import utils
+
 
 weightDist = {}
 degreeDist = {}
@@ -17,7 +20,6 @@ CSV_WEIGHT_FREQUENT = "weightsFrequent.csv"
 
 log_file ="graph_analysis.log" 
 
-nodeNameList={}
    
 args_size=0  
 graph_path = ""
@@ -37,9 +39,7 @@ def StartLog():
     #LOG(msg)    
 
 def FillNodeName(graph):
-    global nodeNameList
-    nodeNameList = nx.get_node_attributes(graph, 'name')
-    print  "index_name have been init with " ,len(nodeNameList)
+    utils.FillNodeName(graph)
     #print nodeNameList  
 
 def Init(graph):
@@ -57,23 +57,6 @@ def LoadGraph(path):
 def printLine():
     print "========================================================================"
 
-
-def GetNodeName(index,graph):
-    if index != None:
-        #print index
-        if nodeNameList.has_key(index):
-            return nodeNameList.get(index) 
-    return None
-
-def SaveStatistics2File(filePath ,header, dictionary):
-    if os.path.exists(filePath):
-        os.remove(filePath)
-    csvFile = open(filePath,"wb")
-    writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(header)
-    for k,v in dictionary.items():
-        writer.writerow([k,v])
-    csvFile.close()
   
 def DegreeAnayltor(graph):
     empty_nodes=0
@@ -87,7 +70,7 @@ def DegreeAnayltor(graph):
     count=0
     printLine()
     print "analyze node degree distribution ..."
-    for node in nodeNameList.iteritems():
+    for node in utils.GetNodeNameList().iteritems():
         deg = graph.degree(node[NODE_INDEX])
         name = node[1]
         if deg > 0 and name:
@@ -164,7 +147,7 @@ def EdgesAnayltor(graph):
     
         
 def  NodeDegreeCorrelation(graph):
-    if len(nodeNameList)==0:
+    if len(utils.GetNodeNameList())==0:
         FillNodeName(graph)
     printLine()
     genCount = 0.0
