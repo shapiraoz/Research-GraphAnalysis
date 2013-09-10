@@ -18,7 +18,7 @@ CSV_DEGREE_DIS = "degree2distribution.csv"
 CSV_DEGREE_WEIGHT_CORR = "degreeWeightCorrlation.csv"
 CSV_WEIGHT_FREQUENT = "weightsFrequent.csv"
 
-log_file ="graph_analysis.log" 
+
 
    
 args_size=0  
@@ -29,14 +29,11 @@ NODE_DETAILES_INDEX=1
     
     
 def LOG(strMsg):
-    logging.debug(strMsg)
+    utils.LOG(strMsg)
     
 def StartLog():
-    #f_log = open(log_file,'wb')
-    #print "starting log file..." 
-    logging.basicConfig(filename=log_file,level=logging.DEBUG)
-    #msg = "starting run: ",datetime.datetime.now()
-    #LOG(msg)    
+    utils.StartLog()
+      
 
 def FillNodeName(graph):
     utils.FillNodeName(graph)
@@ -53,6 +50,7 @@ def LoadGraph(path):
     graph = nx.read_graphml(path)
     print "graph is loaded from path %s" % path 
     return graph
+
 
 def printLine():
     print "========================================================================"

@@ -2,6 +2,7 @@
 import argparse
 import graph_statistics
 import cluser_analysis
+import sys
 from graph_statistics import LoadGraph
 
 
@@ -19,9 +20,26 @@ def tests(graph):
         if deg > 1:
             print deg
 
+
+def testSwap(a, b):
+    c =a
+    a=b
+    b=c
+    return a,b
+    
+
 #******************main*******************
 
 args =parser.parse_args()
+if not len(sys.argv) > 1:
+    print "no arguments has insert"
+    parser.print_help(None)
+    a = 5
+    b = 3
+    a,b= testSwap(a, b)
+    print a,b
+    sys.exit(1)
+    
 if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
 else:
@@ -34,6 +52,8 @@ else:
     if args.cluster:
         partition = cluser_analysis.InitClusterAnalysis(graph)
         cluser_analysis.ShowResultCluster()         
+        cluser_analysis.RunClusterStatistics(graph)
+        
         #cluser_analysis.GenerateDendorgram(graph)
         #print len(cluser_analysis.dendorgram)
        
