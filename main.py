@@ -53,7 +53,7 @@ else:
         partition = cluser_analysis.InitClusterAnalysis(graph)
         cluser_analysis.ShowResultCluster()         
         cluser_analysis.RunClusterStatistics(graph)
-        
+        cluser_analysis.RunBestPartitionIndex(graph)
         #cluser_analysis.GenerateDendorgram(graph)
         #print len(cluser_analysis.dendorgram)
        

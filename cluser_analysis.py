@@ -4,6 +4,7 @@ import csv
 import os
 from utils import SaveStatistics2File
 import utils
+import networkx
 
 
 
@@ -22,6 +23,8 @@ comMem={}
 comMemClean={}
 comMemNames={}
 comDegAvg={}
+comWeight={}
+partition = None
 
 def LogPrint(strMsg):
     utils.LOG(strMsg)
@@ -31,8 +34,11 @@ def InitClusterAnalysis(graph):
     global comMemClean
     global comMemNames
     global comsizeClean
+    global partition
     print "starting best partition algorithm (will take a while)...."
     partition = community.best_partition(graph)
+    modularity = community.modularity(partition, graph)
+    LogPrint("the modularity is %f"%modularity)
     if partition !=None:
         for node in partition.iteritems():
             if comSize.has_key(node[1]):
@@ -56,17 +62,31 @@ def InitClusterAnalysis(graph):
            
 def ShowResultCluster():
     strmsg = "summary results for communities with more them one member :\n number of communities : %d" % len(comSize)
-    print strmsg
-    print "saving data in",CSV_COMMUNITIES_SIZE_FILE,"file..."
+    LogPrint( strmsg)
+    LogPrint( "saving data in %s file...." % CSV_COMMUNITIES_SIZE_FILE)
     SaveStatistics2File(CSV_COMMUNITIES_SIZE_FILE, ['community number ','member size'], comsizeClean)
-    print "done"
-    print "saving data ids on members in" ,  CSV_COMMUNITIES_MEMBERS_IDS ,"file..."
+    LogPrint( "done")
+    LogPrint( "saving data ids on members in %s file...."%  CSV_COMMUNITIES_MEMBERS_IDS)
     SaveStatistics2File(CSV_COMMUNITIES_MEMBERS_IDS , ['community number','members ids'], comMemClean)
-    print "done"    
-    print "saving data on members in ",CSV_COMMUNITIES_MEMBERS,"files..."
+    LogPrint( "done" )   
+    LogPrint( "saving data on members in %s file...")
     SaveStatistics2File(CSV_COMMUNITIES_MEMBERS,['community number','members'],comMemNames) 
     
     
+# performance    
+def AddGroupsWeight(groupId,edgeGroupList):
+    global comWeight
+    weightList =[]
+    for item in edgeGroupList:
+        weightList.append(item[1])
+    comWeight[groupId]=weightList     
+
+def MinMaxList2(edge2weightList): 
+    minList = min(edge2weightList,key=lambda item:item[1])   
+    maxList = max(edge2weightList,key=lambda item:item[1])
+    #sumList = sum(edge2weightList,key=lambda item:item[1])
+    #avg = sumList/len(edge2weightList)
+    return minList[1],maxList[1]
     
 def AvgMinMaxList(list):
     sum =0
@@ -85,34 +105,81 @@ def GetEdgeNodeName(edge2weightList,graph,index):
     return returnStr
     #return   
       
+def ReturnNameWeight(index,edge2weightList,graph):
+    name=None
+    weight=0
+    if index > 0:
+        name= GetEdgeNodeName(edge2weightList,graph,index)
+        weight=edge2weightList[index][1]
+    return name,weight 
+      
 def StrongestEdgesItems(edge2weightList,graph):
-    name1= GetEdgeNodeName(edge2weightList,graph,0)
-    name2= GetEdgeNodeName(edge2weightList,graph,1)
-    name3= GetEdgeNodeName(edge2weightList,graph,2)
-    return name1,name2,name3
+    #last = len(edge2weightList)
+    foundList = FindStrongestEdgesItems(edge2weightList,3,graph)
+    name1 ,weight1 = foundList[0]
+    name2, weight2 = foundList[1]
+    name3, weight3 = foundList[2]
+    #name1 ,weight1 = ReturnNameWeight(last-1, edge2weightList, graph)
+    #name2 ,weight2 = ReturnNameWeight(last-2,edge2weightList, graph)
+    #name3 ,weight3 = ReturnNameWeight(last-3 ,edge2weightList, graph)
+    return name1,weight1,name2,weight2,name3,weight3
     
-def FindEdges(nodeList,graph):
-    edgeList =[] #sort list
+def FindStrongestEdgesItems(edge2weightList,numItem,graph):
+    nameWeightList=[]
+    last =len(edge2weightList)
+    for i in range(1,numItem+1):
+        nameWeightList.insert(i, ReturnNameWeight(last-i,edge2weightList,graph))
+    return nameWeightList
+    
+def FindEdges2(nodeList,graph): 
+    edgeList =[]
+    foundNode=[]
+    sum=0
+    print "start findEdge..."
+    edges =  graph.edges()
+    for node in nodeList:
+        for nodeNeb in graph.neighbors(node):
+            if nodeNeb in nodeList:
+                name1 = utils.GetNodeName(nodeNeb,graph)
+                name2 = utils.GetNodeName(node,graph)
+                if name1!=None and name2!=name1 and name2!=None and  (not node in foundNode and not nodeNeb in foundNode) :
+                    item1 =(str(node),str(nodeNeb))
+                    item2 = (str(nodeNeb),str(node))
+                    item=None
+                    if item1 in edges:
+                        weight=graph[node][nodeNeb]['weight']
+                        item =[item1,weight]
+                    else:
+                        if item2 in edges:
+                            weight =graph[nodeNeb][node]['weight']
+                            item = [item2,weight]
+                    if item!=None:
+                        sum = sum +weight
+                        edgeList.append(item)
+                        foundNode.append(nodeNeb)
+                        foundNode.append(node)
+                    else:
+                        print "not working!!!!!"
+    edgeList.sort(key=lambda item:item[1])
+    #print edgeList
+    return edgeList,sum
    
+def FindEdges(nodeList,graph):
+    
+    edgeList =[] #sort list
+    
     for edge in graph.edges_iter():
-        weight = graph[edge[0]][edge[1]]['weight']
         name1 = utils.GetNodeName(edge[0],graph)
         name2 = utils.GetNodeName(edge[1],graph)
-        if edge[0] in nodeList and edge[1] in nodeList and weight > SIGNIFICAT_WEIGHT and name1 != name2: 
-            #insert to sort list
+        if name1 == None or name2 == None or name1 == name2:
+            continue
+        weight = graph[edge[0]][edge[1]]['weight']
+        if edge[0] in nodeList and edge[1] in nodeList and weight > SIGNIFICAT_WEIGHT : 
             item=[edge,weight]
-            if len(edgeList) == 0:
-                edgeList.append(item)
-                continue
-            index=0 
-            for runItem in edgeList :
-                if runItem[1] < weight :
-                    break
-                index=index+1
-            edgeList.insert(index, item)
-                                
-            #edgeList[weight]=edge # can be problem if there is the same weight 
-    
+            edgeList.append(item)
+            
+    edgeList.sort(key=lambda item:item[1])
+    #print edgeList
     return edgeList    
     
 def GetWeightEdge(edge2weightList):
@@ -132,7 +199,7 @@ def RunClusterStatistics(graph):
         os.remove(CSV_GROUP_SUM)
     csvFile = open(CSV_GROUP_SUM,"wb")
     writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(['group number','number of subjects', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','second edge','third edge'])
+    writer.writerow(['group number','number of subjects','number of edges', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','weight first','second edge','weight second','third edge','weight third'])
     if comMemClean==None or len(comMemClean)==0:
         LogPrint( "error cluster was not init !!!" )
         return  
@@ -156,25 +223,37 @@ def RunClusterStatistics(graph):
         comDegAvg[group[0]]= avgDeg 
         msg =" the avg degree of the group %s is %d" % (group[0]  , avgDeg)
         LogPrint(msg)
-        edgeList = FindEdges(group[1],graph)
+        edgeList,sumEdgesWieghtList = FindEdges2(group[1],graph)
+        #edgeList = FindEdges(group[1],graph)
         edgeListLen = len(edgeList)
-        avgWeight = 0
         if (edgeListLen == 0):
             LogPrint("group don't have edges....")
         else:
+            avgWeight =sumEdgesWieghtList/edgeListLen 
             LogPrint ("number edges=%d" % edgeListLen)
             WeightList = GetWeightEdge(edgeList)
-            avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
+            #avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
+            minWeight,maxWeight = MinMaxList2(edgeList)
             LogPrint("avg weight is %f" % avgWeight  )
-        name1,name2,name3 = StrongestEdgesItems(edgeList, graph)
-        LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
-        writer.writerow([group[0],numMembers,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,name2,name3])
+            name1,weight1,name2,weight2,name3,weight3 = StrongestEdgesItems(edgeList, graph)
+            LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
+            
+            writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
     LogPrint("Done!!!")
     csvFile.close()
+        
+def RunBestPartitionIndex(graph):
+    global partition
+    print "partition len before: %d"%len(partition)
+    partition = community.best_partition(graph, partition)
+    print "partition len after %d"% len(partition)
+    
+        
         
 def GenerateDendorgram(graph):
     global dendorgram
     dendorgram = community.generate_dendogram(graph)
+    
 
 def GetDendorgram():
     return dendorgram
