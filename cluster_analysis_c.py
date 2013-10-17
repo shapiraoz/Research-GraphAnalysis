@@ -24,10 +24,10 @@ class cluster_analysis_c :
         self.m_comWeight={}
         self.m_partition = None
         self.__m_dendorgram =None
-        self.__CSV_COMMUNITIES_SIZE_FILE="communitiesSize.csv"
-        self.__CSV_COMMUNITIES_MEMBERS_IDS="communitiesMemberIDS.csv"
-        self.__CSV_COMMUNITIES_MEMBERS="communitiesMember.csv"
-        self.__CSV_GROUP_SUM = "groups_statistics.csv"
+        self.__CSV_COMMUNITIES_SIZE_FILE="communitiesSize_%s.csv" %self.m_graph.name
+        self.__CSV_COMMUNITIES_MEMBERS_IDS="communitiesMemberIDS_%s.csv"%self.m_graph.name
+        self.__CSV_COMMUNITIES_MEMBERS="communitiesMember_%s.csv"%self.m_graph.name
+        self.__CSV_GROUP_SUM = "groups_statistics_%s.csv"%self.m_graph.name
         self.__InitClusterAnalysis()
     
     def __InitClusterAnalysis(self):
@@ -188,8 +188,7 @@ class cluster_analysis_c :
         return weightList
         
     def RunClusterStatistics(self):
-        global comDegAvg
-        
+        subGraphCnt=0;      
         self.__LogPrint("Run Cluster Statistics...")
         self.__LogPrint("=======================================================================")
         if os.path.exists(self.__CSV_GROUP_SUM):
@@ -223,6 +222,15 @@ class cluster_analysis_c :
             edgeList,sumEdgesWieghtList = self.__FindEdges2(group[1],self.m_graph)
             #edgeList = FindEdges(group[1],graph)
             edgeListLen = len(edgeList)
+            if (edgeListLen>1000):
+                subGraph= networkx.subgraph(self.m_graph, group[1])
+                subGraphCnt=subGraphCnt+1
+                subGraph.name="SubGraph%d"%subGraphCnt
+                ca=cluster_analysis_c(subGraph)
+                ca.RunClusterStatistics()
+                ca.ShowResultCluster()
+                self.__LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)
+                
             if (edgeListLen == 0):
                 self.__LogPrint("group don't have edges....")
             else:
