@@ -14,6 +14,8 @@ class cluster_analysis_c :
     
     def __init__(self,graph):
         
+        self.SUBGRAPH_MEMBERS_CRITERIA =2000
+        self.SUBGRAPH_EDGE_CRITERIA =500
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -47,10 +49,10 @@ class cluster_analysis_c :
                     self.m_comMem[node[1]]=[]
         for cSize in self.m_comSize.iteritems():
             if cSize[1] >1:
-                print "cSize[1]=",cSize[1]
+                self.__LogPrint("cSize[1]=%d"%cSize[1])
                 self.m_comsizeClean[cSize[0]] =cSize[1]
                 if len(self.m_comMem[cSize[0]])==1:
-                    print "way this value is only one member...",self.m_comMem[cSize[0]]
+                    self.__LogPrint( "have value is only one member...%d")
                 self.m_comMemClean[cSize[0]] = self.m_comMem[cSize[0]]
         
         for memberIDs in self.m_comMemClean.iteritems():
@@ -222,10 +224,10 @@ class cluster_analysis_c :
             edgeList,sumEdgesWieghtList = self.__FindEdges2(group[1],self.m_graph)
             #edgeList = FindEdges(group[1],graph)
             edgeListLen = len(edgeList)
-            if (edgeListLen>1000):
+            if (edgeListLen > self.SUBGRAPH_EDGE_CRITERIA and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA):
                 subGraph= networkx.subgraph(self.m_graph, group[1])
                 subGraphCnt=subGraphCnt+1
-                subGraph.name="SubGraph%d"%subGraphCnt
+                subGraph.name="SubGraph%d"%group[0]
                 ca=cluster_analysis_c(subGraph)
                 ca.RunClusterStatistics()
                 ca.ShowResultCluster()
