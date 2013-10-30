@@ -4,9 +4,13 @@ import networkx as nx
 import logging
 
 nodeNameList={}
-log_file ="graph_analysis.log" 
+RESULT_DIR ="results"
+log_file ="%s/graph_analysis.log"% RESULT_DIR 
 
 
+def EnsureDir(d):
+    if not os.path.exists(d):
+        os.mkdir(d)
 
 def FillNodeName(graph):
     global nodeNameList
@@ -21,7 +25,7 @@ def LOG(strMsg):
     
 def StartLog():
     #f_log = open(log_file,'wb')
-    #print "starting log file..." 
+    print "starting log file..."
     logging.basicConfig(filename=log_file,level=logging.DEBUG)
     #msg = "starting run: ",datetime.datetime.now()
     #LOG(msg)    

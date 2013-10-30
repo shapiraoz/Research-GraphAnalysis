@@ -6,6 +6,11 @@ import cluster_analysis_c
 import sys
 from graph_statistics import LoadGraph
 import graphCleaner
+import utils
+
+def init():
+    utils.EnsureDir(utils.RESULT_DIR);
+
 
 
 parser = argparse.ArgumentParser(description='graph analysis ')
@@ -33,8 +38,9 @@ if not len(sys.argv) > 1:
 if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
 else:
+    init()
     graph = LoadGraph(args.graphPath.name)
-    graph.name= "mainGraph"
+    graph.name= "m"
    
     print "cleaning the graph...."
     #gc = graphCleaner.graph_cleaner_c(graph)

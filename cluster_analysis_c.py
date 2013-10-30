@@ -5,6 +5,8 @@ import os
 from utils import SaveStatistics2File
 import utils
 import networkx
+import time
+import classifier_c
 
 class cluster_analysis_c :
     
@@ -12,10 +14,10 @@ class cluster_analysis_c :
         utils.LOG(strMsg)
         print strMsg
     
-    def __init__(self,graph):
+    def __init__(self,graph,classifier = None):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =2000
-        self.SUBGRAPH_EDGE_CRITERIA =500
+        self.SUBGRAPH_MEMBERS_CRITERIA =500
+        self.SUBGRAPH_EDGE_CRITERIA =75
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -26,20 +28,32 @@ class cluster_analysis_c :
         self.m_comWeight={}
         self.m_partition = None
         self.__m_dendorgram =None
-        self.__CSV_COMMUNITIES_SIZE_FILE="communitiesSize_%s.csv" %self.m_graph.name
-        self.__CSV_COMMUNITIES_MEMBERS_IDS="communitiesMemberIDS_%s.csv"%self.m_graph.name
-        self.__CSV_COMMUNITIES_MEMBERS="communitiesMember_%s.csv"%self.m_graph.name
-        self.__CSV_GROUP_SUM = "groups_statistics_%s.csv"%self.m_graph.name
+        self.__CSV_COMMUNITIES_SIZE_FILE="%s/communitiesSize_%s.csv" % (utils.RESULT_DIR,self.m_graph.name)
+        self.__CSV_COMMUNITIES_MEMBERS_IDS="%s/communitiesMemberIDS_%s.csv"%(utils.RESULT_DIR, self.m_graph.name)
+        self.__CSV_COMMUNITIES_MEMBERS="%s/communitiesMember_%s.csv"% (utils.RESULT_DIR,self.m_graph.name)
+        self.__CSV_GROUP_SUM = "%s/groups_statistics_%s.csv"% (utils.RESULT_DIR,self.m_graph.name)
+        self.m_classifier=classifier
         self.__InitClusterAnalysis()
+       
+    
+    def SetClassifier(self,classifier):
+        self.m_classifier=classifier
     
     def __InitClusterAnalysis(self):
               
         print "starting best m_partition algorithm (will take a while)...."
-        self.m_partition = community.best_partition(self.m_graph)
-        modularity = community.modularity(self.m_partition,self.m_graph)
-        self.__LogPrint("the modularity is %f"%modularity)
+        if self.m_classifier==None:
+            classifier = classifier_c.classifier_c(self.m_graph)
+            self.m_partition = classifier.run_classifier(classifier_c.classifier_type_e.e_bestPractice)  #community.best_partition(self.m_graph)
+            modularity = community.modularity(self.m_partition,self.m_graph)
+            self.__LogPrint("the modularity is %f"%modularity)
+        else:
+            self.m_partition=self.m_classifier.classifey()
+        if self.m_partition==None:
+            self.__LogPrint("partition is NULL...will not create cluster, exit")
+            return
         #__LogPrint(self,"the modularity is %f"%modularity)
-        if self.m_partition !=None:
+        else:
             for node in self.m_partition.iteritems():
                 if self.m_comSize.has_key(node[1]):
                     self.m_comSize[node[1]]= self.m_comSize[node[1]]+1
@@ -190,11 +204,11 @@ class cluster_analysis_c :
         return weightList
         
     def RunClusterStatistics(self):
-        subGraphCnt=0;      
-        self.__LogPrint("Run Cluster Statistics...")
+        self.__LogPrint("Run Cluster Statistics...saving data on %s file" % self.__CSV_GROUP_SUM)
         self.__LogPrint("=======================================================================")
         if os.path.exists(self.__CSV_GROUP_SUM):
             os.remove(self.__CSV_GROUP_SUM)
+        
         csvFile = open(self.__CSV_GROUP_SUM,"wb")
         writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(['group number','number of subjects','number of edges', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','weight first','second edge','weight second','third edge','weight third'])
@@ -226,8 +240,8 @@ class cluster_analysis_c :
             edgeListLen = len(edgeList)
             if (edgeListLen > self.SUBGRAPH_EDGE_CRITERIA and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA):
                 subGraph= networkx.subgraph(self.m_graph, group[1])
-                subGraphCnt=subGraphCnt+1
-                subGraph.name="SubGraph%d"%group[0]
+                
+                subGraph.name="%s.%d"%(self.m_graph.name, group[0])
                 ca=cluster_analysis_c(subGraph)
                 ca.RunClusterStatistics()
                 ca.ShowResultCluster()
@@ -248,6 +262,8 @@ class cluster_analysis_c :
                 writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
         self.__LogPrint("Done!!!")
         csvFile.close()
+        self.__LogPrint("close %s file "% self.__CSV_GROUP_SUM )
+        
             
     def RunBestPartitionIndex(self):
         print "m_partition len before: %d"%len(self.m_partition)
