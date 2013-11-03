@@ -5,7 +5,6 @@ import os
 from utils import SaveStatistics2File
 import utils
 import networkx
-import time
 import classifier_c
 
 class cluster_analysis_c :
@@ -14,10 +13,10 @@ class cluster_analysis_c :
         utils.LOG(strMsg)
         print strMsg
     
-    def __init__(self,graph,classifier = None):
+    def __init__(self,graph,classifier = None,depth=2):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =500
-        self.SUBGRAPH_EDGE_CRITERIA =75
+        self.SUBGRAPH_MEMBERS_CRITERIA =10
+        self.SUBGRAPH_EDGE_CRITERIA =2
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -28,10 +27,18 @@ class cluster_analysis_c :
         self.m_comWeight={}
         self.m_partition = None
         self.__m_dendorgram =None
-        self.__CSV_COMMUNITIES_SIZE_FILE="%s/communitiesSize_%s.csv" % (utils.RESULT_DIR,self.m_graph.name)
-        self.__CSV_COMMUNITIES_MEMBERS_IDS="%s/communitiesMemberIDS_%s.csv"%(utils.RESULT_DIR, self.m_graph.name)
-        self.__CSV_COMMUNITIES_MEMBERS="%s/communitiesMember_%s.csv"% (utils.RESULT_DIR,self.m_graph.name)
-        self.__CSV_GROUP_SUM = "%s/groups_statistics_%s.csv"% (utils.RESULT_DIR,self.m_graph.name)
+        self.m_depth=depth
+        if classifier!=None :
+            self.m_resultsDir ="%s/%s"% (utils.RESULT_DIR,classifier.GetName())
+            utils.EnsureDir(self.m_resultsDir)
+        else:
+            self.m_resultsDir = utils.RESULT_DIR
+            
+        
+        self.__CSV_COMMUNITIES_SIZE_FILE="%s/communitiesSize_%s.csv" % (self.m_resultsDir,self.m_graph.name)
+        self.__CSV_COMMUNITIES_MEMBERS_IDS="%s/communitiesMemberIDS_%s.csv"%(self.m_resultsDir, self.m_graph.name)
+        self.__CSV_COMMUNITIES_MEMBERS="%s/communitiesMember_%s.csv"% (self.m_resultsDir,self.m_graph.name)
+        self.__CSV_GROUP_SUM = "%s/groups_statistics_%s.csv"% (self.m_resultsDir,self.m_graph.name)
         self.m_classifier=classifier
         self.__InitClusterAnalysis()
        
@@ -43,7 +50,7 @@ class cluster_analysis_c :
               
         print "starting best m_partition algorithm (will take a while)...."
         if self.m_classifier==None:
-            classifier = classifier_c.classifier_c(self.m_graph)
+            classifier = classifier_c.classifier_c(self.m_graph,"best_practice")
             self.m_partition = classifier.run_classifier(classifier_c.classifier_type_e.e_bestPractice)  #community.best_partition(self.m_graph)
             modularity = community.modularity(self.m_partition,self.m_graph)
             self.__LogPrint("the modularity is %f"%modularity)
@@ -83,7 +90,7 @@ class cluster_analysis_c :
         self.__LogPrint( "saving data ids on members in %s file...."%  self.__CSV_COMMUNITIES_MEMBERS_IDS)
         SaveStatistics2File(self.__CSV_COMMUNITIES_MEMBERS_IDS , ['community number','members ids'],self.m_comMemClean)
         self.__LogPrint( "done" )   
-        self.__LogPrint( "saving data on members in %s file...")
+        self.__LogPrint( "saving data on members in %s file..." % self.__CSV_COMMUNITIES_MEMBERS)
         SaveStatistics2File(self.__CSV_COMMUNITIES_MEMBERS,['community number','members'],self.m_comMemNames) 
         
         
@@ -238,11 +245,12 @@ class cluster_analysis_c :
             edgeList,sumEdgesWieghtList = self.__FindEdges2(group[1],self.m_graph)
             #edgeList = FindEdges(group[1],graph)
             edgeListLen = len(edgeList)
-            if (edgeListLen > self.SUBGRAPH_EDGE_CRITERIA and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA):
+            if (edgeListLen < self.SUBGRAPH_EDGE_CRITERIA and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA and self.m_depth > 0):
                 subGraph= networkx.subgraph(self.m_graph, group[1])
                 
                 subGraph.name="%s.%d"%(self.m_graph.name, group[0])
-                ca=cluster_analysis_c(subGraph)
+                calssCa = classifier_c.classifier_c(subGraph,self.m_classifier.GetName(),self.m_classifier.GeyType())
+                ca=cluster_analysis_c(subGraph,calssCa,self.m_depth-1)
                 ca.RunClusterStatistics()
                 ca.ShowResultCluster()
                 self.__LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)

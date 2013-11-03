@@ -7,6 +7,7 @@ import sys
 from graph_statistics import LoadGraph
 import graphCleaner
 import utils
+import classifier_c
 
 def init():
     utils.EnsureDir(utils.RESULT_DIR);
@@ -57,9 +58,19 @@ else:
         graph_statistics.EdgesAnayltor(workGraph)
         graph_statistics.NodeDegreeCorrelation(workGraph)
     if args.cluster:
-        cluster_analysis = cluster_analysis_c.cluster_analysis_c(workGraph)
-        cluster_analysis.RunClusterStatistics()
-        cluster_analysis.ShowResultCluster()
+        copyGraph=workGraph.copy()
+        classifier_best = classifier_c.classifier_c(workGraph,"best_practice",classifier_c.classifier_type_e.e_bestPractice)
+       
+        cluster_best_analysis = cluster_analysis_c.cluster_analysis_c(workGraph,classifier_best)
+        cluster_best_analysis.RunClusterStatistics()
+        cluster_best_analysis.ShowResultCluster()
+        
+        classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
+        cluster_best_analysisNetworkx = cluster_analysis_c.cluster_analysis_c(copyGraph,classifier_networkX)
+        cluster_best_analysisNetworkx.RunClusterStatistics()
+        cluster_best_analysisNetworkx.ShowResultCluster()
+            
+        
     
         #partition = cluser_analysis.InitClusterAnalysis(graph)
         #cluser_analysis.ShowResultCluster()         
