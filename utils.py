@@ -3,9 +3,33 @@ import csv
 import networkx as nx
 import logging
 
+
+
 nodeNameList={}
 RESULT_DIR ="results"
 log_file ="%s/graph_analysis.log"% RESULT_DIR 
+startedLog=False
+IsNodeNameListInit=False
+
+
+########################################################################
+# String util functions
+def safe_unicode(obj, *args):
+    """ return the unicode representation of obj """
+    try:
+        return unicode(obj, *args)
+    except UnicodeDecodeError:
+        # obj is byte string
+        ascii_text = str(obj).encode('string_escape')
+        return unicode(ascii_text)
+
+def clean_string(str):
+    str_clean = str.lower()
+    str_clean = str_clean.strip()
+    str_clean = safe_unicode(str_clean)
+    return str_clean
+########################################################################
+
 
 
 def EnsureDir(d):
@@ -14,8 +38,10 @@ def EnsureDir(d):
 
 def FillNodeName(graph):
     global nodeNameList
+    global IsNodeNameListInit
     nodeNameList = nx.get_node_attributes(graph, 'name')
     print  "index_name have been init with " ,len(nodeNameList)
+    IsNodeNameListInit =True
     #print nodeNameList  
 
 
@@ -24,11 +50,10 @@ def LOG(strMsg):
     logging.debug(strMsg)
     
 def StartLog():
-    #f_log = open(log_file,'wb')
+    global startedLog
     print "starting log file..."
     logging.basicConfig(filename=log_file,level=logging.DEBUG)
-    #msg = "starting run: ",datetime.datetime.now()
-    #LOG(msg)    
+    startedLog=True
 
 
 def Init(graph):
@@ -39,6 +64,9 @@ def GetNodeNameList():
     return nodeNameList
 
 def GetNodeName(index,graph):
+    global IsNodeNameListInit
+    if not IsNodeNameListInit:
+        FillNodeName(graph)
     if index != None:
         #print index
         if nodeNameList.has_key(index):

@@ -8,6 +8,7 @@ from graph_statistics import LoadGraph
 import graphCleaner
 import utils
 import classifier_c
+import users_DB_graph_c
 
 def init():
     utils.EnsureDir(utils.RESULT_DIR);
@@ -52,7 +53,11 @@ else:
         gc = graphCleaner.graph_cleaner_c(graph,args.weight)
         workGraph = gc.CleanGraph()
        
-    graph_statistics.Init(workGraph) 
+    graph_statistics.Init(workGraph)
+    
+    users_db= users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
+    print "number of users in data file is %d"% users_db.GetNumOfDBUsers()
+    print "number of user in that graph %d"%users_db.GetNumUsersGraph()
     if args.statistics :
         graph_statistics.DegreeAnayltor(workGraph)
         graph_statistics.EdgesAnayltor(workGraph)
@@ -65,10 +70,10 @@ else:
         cluster_best_analysis.RunClusterStatistics()
         cluster_best_analysis.ShowResultCluster()
         
-        classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
-        cluster_best_analysisNetworkx = cluster_analysis_c.cluster_analysis_c(copyGraph,classifier_networkX)
-        cluster_best_analysisNetworkx.RunClusterStatistics()
-        cluster_best_analysisNetworkx.ShowResultCluster()
+        #classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
+        #cluster_best_analysisNetworkx = cluster_analysis_c.cluster_analysis_c(copyGraph,classifier_networkX)
+        #cluster_best_analysisNetworkx.RunClusterStatistics()
+        #cluster_best_analysisNetworkx.ShowResultCluster()
             
         
     

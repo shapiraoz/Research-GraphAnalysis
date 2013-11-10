@@ -3,20 +3,17 @@ import community
 import csv
 import os
 from utils import SaveStatistics2File
-import utils
 import networkx
 import classifier_c
+from base_c import base_c
+import utils
 
-class cluster_analysis_c :
-    
-    def __LogPrint(self,strMsg):
-        utils.LOG(strMsg)
-        print strMsg
-    
+class cluster_analysis_c (base_c) :
+          
     def __init__(self,graph,classifier = None,depth=2):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =10
-        self.SUBGRAPH_EDGE_CRITERIA =2
+        self.SUBGRAPH_MEMBERS_CRITERIA =300
+        self.SUBGRAPH_EDGE_CRITERIA =60
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -53,11 +50,11 @@ class cluster_analysis_c :
             classifier = classifier_c.classifier_c(self.m_graph,"best_practice")
             self.m_partition = classifier.run_classifier(classifier_c.classifier_type_e.e_bestPractice)  #community.best_partition(self.m_graph)
             modularity = community.modularity(self.m_partition,self.m_graph)
-            self.__LogPrint("the modularity is %f"%modularity)
+            self.LogPrint("the modularity is %f"%modularity)
         else:
             self.m_partition=self.m_classifier.classifey()
         if self.m_partition==None:
-            self.__LogPrint("partition is NULL...will not create cluster, exit")
+            self.LogPrint("partition is NULL...will not create cluster, exit")
             return
         #__LogPrint(self,"the modularity is %f"%modularity)
         else:
@@ -70,7 +67,7 @@ class cluster_analysis_c :
                     self.m_comMem[node[1]]=[]
         for cSize in self.m_comSize.iteritems():
             if cSize[1] >1:
-                self.__LogPrint("cSize[1]=%d"%cSize[1])
+                self.LogPrint("cSize[1]=%d"%cSize[1])
                 self.m_comsizeClean[cSize[0]] =cSize[1]
                 if len(self.m_comMem[cSize[0]])==1:
                     self.__LogPrint( "have value is only one member...%d")
@@ -83,14 +80,14 @@ class cluster_analysis_c :
                
     def ShowResultCluster(self):
         strmsg = "summary results for communities with more them one member :\n number of communities : %d" % len(self.m_comSize)
-        self.__LogPrint( strmsg)
-        self.__LogPrint( "saving data in %s file...." % self.__CSV_COMMUNITIES_SIZE_FILE)
+        self.LogPrint( strmsg)
+        self.LogPrint( "saving data in %s file...." % self.__CSV_COMMUNITIES_SIZE_FILE)
         SaveStatistics2File(self.__CSV_COMMUNITIES_SIZE_FILE, ['community number ','member size'],self.m_comsizeClean)
-        self.__LogPrint( "done")
-        self.__LogPrint( "saving data ids on members in %s file...."%  self.__CSV_COMMUNITIES_MEMBERS_IDS)
+        self.LogPrint( "done")
+        self.LogPrint( "saving data ids on members in %s file...."%  self.__CSV_COMMUNITIES_MEMBERS_IDS)
         SaveStatistics2File(self.__CSV_COMMUNITIES_MEMBERS_IDS , ['community number','members ids'],self.m_comMemClean)
-        self.__LogPrint( "done" )   
-        self.__LogPrint( "saving data on members in %s file..." % self.__CSV_COMMUNITIES_MEMBERS)
+        self.LogPrint( "done" )   
+        self.LogPrint( "saving data on members in %s file..." % self.__CSV_COMMUNITIES_MEMBERS)
         SaveStatistics2File(self.__CSV_COMMUNITIES_MEMBERS,['community number','members'],self.m_comMemNames) 
         
         
@@ -211,8 +208,8 @@ class cluster_analysis_c :
         return weightList
         
     def RunClusterStatistics(self):
-        self.__LogPrint("Run Cluster Statistics...saving data on %s file" % self.__CSV_GROUP_SUM)
-        self.__LogPrint("=======================================================================")
+        self.LogPrint("Run Cluster Statistics...saving data on %s file" % self.__CSV_GROUP_SUM)
+        self.LogPrint("=======================================================================")
         if os.path.exists(self.__CSV_GROUP_SUM):
             os.remove(self.__CSV_GROUP_SUM)
         
@@ -220,16 +217,16 @@ class cluster_analysis_c :
         writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(['group number','number of subjects','number of edges', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','weight first','second edge','weight second','third edge','weight third'])
         if self.m_comMemClean==None or len(self.m_comMemClean)==0:
-            self.__LogPrint( "error cluster was not init !!!" )
+            self.LogPrint( "error cluster was not init !!!" )
             return  
-        self.__LogPrint( "size of m_comMemClean= %d "% len(self.m_comMemClean))
+        self.LogPrint( "size of m_comMemClean= %d "% len(self.m_comMemClean))
         for group in self.m_comMemClean.iteritems():
             maxDeg =0
             minDeg =10000000
             maxWeight = -1
             minWeight = -1
             numMembers = len(group[1])
-            self.__LogPrint("statistics for group %s:"%group[0])
+            self.LogPrint("statistics for group %s:"%group[0])
             sumGroup=0
             for node in group[1]:
                 deg = self.m_graph.degree(node)
@@ -241,7 +238,7 @@ class cluster_analysis_c :
             avgDeg =  sumGroup/numMembers
             self.m_comDegAvg[group[0]]= avgDeg 
             msg =" the avg degree of the group %s is %d" % (group[0]  , avgDeg)
-            self.__LogPrint(msg)
+            self.LogPrint(msg)
             edgeList,sumEdgesWieghtList = self.__FindEdges2(group[1],self.m_graph)
             #edgeList = FindEdges(group[1],graph)
             edgeListLen = len(edgeList)
@@ -253,24 +250,24 @@ class cluster_analysis_c :
                 ca=cluster_analysis_c(subGraph,calssCa,self.m_depth-1)
                 ca.RunClusterStatistics()
                 ca.ShowResultCluster()
-                self.__LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)
+                self.LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)
                 
             if (edgeListLen == 0):
-                self.__LogPrint("group don't have edges....")
+                self.LogPrint("group don't have edges....")
             else:
                 avgWeight =sumEdgesWieghtList/edgeListLen 
-                self.__LogPrint ("number edges=%d" % edgeListLen)
+                self.LogPrint ("number edges=%d" % edgeListLen)
                 #WeightList = GetWeightEdge(edgeList)
                 #avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
                 minWeight,maxWeight = self.__MinMaxList2(edgeList)
-                self.__LogPrint("avg weight is %f" % avgWeight  )
+                self.LogPrint("avg weight is %f" % avgWeight  )
                 name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
-                self.__LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
+                self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
                 
                 writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
-        self.__LogPrint("Done!!!")
+        self.LogPrint("Done!!!")
         csvFile.close()
-        self.__LogPrint("close %s file "% self.__CSV_GROUP_SUM )
+        self.LogPrint("close %s file "% self.__CSV_GROUP_SUM )
         
             
     def RunBestPartitionIndex(self):

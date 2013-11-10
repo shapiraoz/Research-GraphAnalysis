@@ -5,27 +5,12 @@ import networkx as nx
 import random
 import cPickle as pickle
 import collections
+import utils
 ########################################################################
 users_count = 0
 unique_interests_count = 0
 users_degrees_distribution = {}
-########################################################################
-# String util functions
-def safe_unicode(obj, *args):
-	""" return the unicode representation of obj """
-	try:
-		return unicode(obj, *args)
-	except UnicodeDecodeError:
-		# obj is byte string
-		ascii_text = str(obj).encode('string_escape')
-		return unicode(ascii_text)
 
-def clean_string(str):
-	str_clean = str.lower()
-	str_clean = str_clean.strip()
-	str_clean = safe_unicode(str_clean)
-	return str_clean
-########################################################################
 # index strings and generate unique node id, returns node id
 nodes_index = {}
 nodes_index_inverse = {}
@@ -33,7 +18,7 @@ nodes_index_inverse = {}
 def gen_node(name, node_type, graph):
 	global unique_interests_count
 	node_id = 0
-	clean_str = clean_string(name)
+	clean_str = utils.clean_string(name)
 	if clean_str in nodes_index:
 		#string is already indexed, return node_id
 		node_id = nodes_index[clean_str]
