@@ -2,6 +2,8 @@
 @author: oz
 '''
 
+import utils
+
 class graph_cleaner_c:
     
     def __init__(self,graph,minWeight):
@@ -31,8 +33,9 @@ class graph_cleaner_c:
                 self.m_cleanGraph.remove_edge(edge[0],edge[1])
         nodes =self.m_cleanGraph.nodes();
         for node in nodes:
-            if  len(self.m_cleanGraph.neighbors(node))==0:
+            if  len(self.m_cleanGraph.neighbors(node))== 0 or utils.GetNodeName(node, self.m_cleanGraph) == None:
                 self.m_cleanGraph.remove_node(node)
+        
         
         self.m_isClean=1
         return self.m_cleanGraph

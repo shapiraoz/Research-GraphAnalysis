@@ -41,6 +41,7 @@ if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
 else:
     init()
+    print "load graph (can take a while)..."
     graph = LoadGraph(args.graphPath.name)
     graph.name= "m"
    
@@ -54,10 +55,13 @@ else:
         workGraph = gc.CleanGraph()
        
     graph_statistics.Init(workGraph)
-    
+    print "checking for data on users ..."
     users_db= users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
     print "number of users in data file is %d"% users_db.GetNumOfDBUsers()
-    print "number of user in that graph %d"%users_db.GetNumUsersGraph()
+    num_of_users_in_graph =users_db.GetNumUsersGraph()
+    msg = "number of user in that graph %d"%num_of_users_in_graph
+    print msg
+    utils.LOG(msg)
     if args.statistics :
         graph_statistics.DegreeAnayltor(workGraph)
         graph_statistics.EdgesAnayltor(workGraph)

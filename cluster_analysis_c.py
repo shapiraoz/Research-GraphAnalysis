@@ -12,8 +12,8 @@ class cluster_analysis_c (base_c) :
           
     def __init__(self,graph,classifier = None,depth=2):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =300
-        self.SUBGRAPH_EDGE_CRITERIA =60
+        self.SUBGRAPH_MEMBERS_CRITERIA =200
+        self.SELF_WEIGHT_SUBJECT_RATIO =3
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -70,7 +70,7 @@ class cluster_analysis_c (base_c) :
                 self.LogPrint("cSize[1]=%d"%cSize[1])
                 self.m_comsizeClean[cSize[0]] =cSize[1]
                 if len(self.m_comMem[cSize[0]])==1:
-                    self.__LogPrint( "have value is only one member...%d")
+                    self.LogPrint( "have value is only one member...")
                 self.m_comMemClean[cSize[0]] = self.m_comMem[cSize[0]]
         
         for memberIDs in self.m_comMemClean.iteritems():
@@ -125,7 +125,7 @@ class cluster_analysis_c (base_c) :
     def __ReturnNameWeight(self,index,edge2weightList,graph):
         name=None
         weight=0
-        if index > 0:
+        if index >= 0:
             name= self.__GetEdgeNodeName(edge2weightList,graph,index)
             weight=edge2weightList[index][1]
         return name,weight 
@@ -145,7 +145,7 @@ class cluster_analysis_c (base_c) :
         nameWeightList=[]
         last =len(edge2weightList)
         for i in range(1,numItem+1):
-            nameWeightList.insert(i, self.__ReturnNameWeight(last-i,edge2weightList,graph))
+            nameWeightList.insert(i-1, self.__ReturnNameWeight(last-i,edge2weightList,graph))
         return nameWeightList
         
     def __FindEdges2(self,nodeList,graph): 
@@ -226,6 +226,8 @@ class cluster_analysis_c (base_c) :
             maxWeight = -1
             minWeight = -1
             numMembers = len(group[1])
+            if numMembers < 3:
+                continue
             self.LogPrint("statistics for group %s:"%group[0])
             sumGroup=0
             for node in group[1]:
@@ -242,7 +244,11 @@ class cluster_analysis_c (base_c) :
             edgeList,sumEdgesWieghtList = self.__FindEdges2(group[1],self.m_graph)
             #edgeList = FindEdges(group[1],graph)
             edgeListLen = len(edgeList)
-            if (edgeListLen < self.SUBGRAPH_EDGE_CRITERIA and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA and self.m_depth > 0):
+            if edgeListLen == 0:
+                self.LogPrint("group don't have edges....")
+                continue
+            weightNumRatio = float(numMembers/edgeListLen)
+            if (weightNumRatio > self.SELF_WEIGHT_SUBJECT_RATIO and numMembers > self.SUBGRAPH_MEMBERS_CRITERIA  and self.m_depth > 0):
                 subGraph= networkx.subgraph(self.m_graph, group[1])
                 
                 subGraph.name="%s.%d"%(self.m_graph.name, group[0])
@@ -252,19 +258,16 @@ class cluster_analysis_c (base_c) :
                 ca.ShowResultCluster()
                 self.LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)
                 
-            if (edgeListLen == 0):
-                self.LogPrint("group don't have edges....")
-            else:
-                avgWeight =sumEdgesWieghtList/edgeListLen 
-                self.LogPrint ("number edges=%d" % edgeListLen)
-                #WeightList = GetWeightEdge(edgeList)
-                #avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
-                minWeight,maxWeight = self.__MinMaxList2(edgeList)
-                self.LogPrint("avg weight is %f" % avgWeight  )
-                name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
-                self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
+            avgWeight =sumEdgesWieghtList/edgeListLen 
+            self.LogPrint ("number edges=%d" % edgeListLen)
+            #WeightList = GetWeightEdge(edgeList)
+            #avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
+            minWeight,maxWeight = self.__MinMaxList2(edgeList)
+            self.LogPrint("avg weight is %f" % avgWeight  )
+            name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
+            self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
                 
-                writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
+            writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
         self.LogPrint("Done!!!")
         csvFile.close()
         self.LogPrint("close %s file "% self.__CSV_GROUP_SUM )

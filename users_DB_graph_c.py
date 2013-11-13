@@ -121,9 +121,9 @@ class user_DB_graph_c(base_c):
                             if not user in usersList:
                                 usersList.append(user)
                                 break
-        print "all users :"
-        for user in usersList:
-            print "%s,"%user
+        #print "all users :"
+        #for user in usersList:
+            #print "%s,"%user
         return len(usersList)
                         
         
