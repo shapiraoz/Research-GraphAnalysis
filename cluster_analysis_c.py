@@ -12,8 +12,10 @@ class cluster_analysis_c (base_c) :
           
     def __init__(self,graph,classifier = None,depth=2):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =200
+        self.SUBGRAPH_MEMBERS_CRITERIA =25
         self.SELF_WEIGHT_SUBJECT_RATIO =3
+        self.MIN_SUBJECTS_IN_GROUPS=5
+        self.MIN_EDGES_IN_GROUPS=3
         self.m_graph = graph
         self.m_comSize={}
         self.m_comsizeClean={}
@@ -25,6 +27,7 @@ class cluster_analysis_c (base_c) :
         self.m_partition = None
         self.__m_dendorgram =None
         self.m_depth=depth
+        
         if classifier!=None :
             self.m_resultsDir ="%s/%s"% (utils.RESULT_DIR,classifier.GetName())
             utils.EnsureDir(self.m_resultsDir)
@@ -219,14 +222,15 @@ class cluster_analysis_c (base_c) :
         if self.m_comMemClean==None or len(self.m_comMemClean)==0:
             self.LogPrint( "error cluster was not init !!!" )
             return  
-        self.LogPrint( "size of m_comMemClean= %d "% len(self.m_comMemClean))
+        self.LogPrint( "number of groups= %d "% len(self.m_comMemClean))
+      
         for group in self.m_comMemClean.iteritems():
             maxDeg =0
             minDeg =10000000
             maxWeight = -1
             minWeight = -1
             numMembers = len(group[1])
-            if numMembers < 3:
+            if numMembers < self.MIN_SUBJECTS_IN_GROUPS:
                 continue
             self.LogPrint("statistics for group %s:"%group[0])
             sumGroup=0
@@ -262,12 +266,14 @@ class cluster_analysis_c (base_c) :
             self.LogPrint ("number edges=%d" % edgeListLen)
             #WeightList = GetWeightEdge(edgeList)
             #avgWeight,minWeight,maxWeight = AvgMinMaxList(WeightList)
-            minWeight,maxWeight = self.__MinMaxList2(edgeList)
-            self.LogPrint("avg weight is %f" % avgWeight  )
-            name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
-            self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
-                
-            writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
+            if edgeListLen>self.MIN_EDGES_IN_GROUPS:
+                minWeight,maxWeight = self.__MinMaxList2(edgeList)
+                self.LogPrint("avg weight is %f" % avgWeight  )
+                name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
+                self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
+                writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
+            else:
+                self.LogPrint("skip writing line in %s to group %d ,number of edges in this group is small(%d)"%(self.__CSV_GROUP_SUM,group[0],edgeListLen))
         self.LogPrint("Done!!!")
         csvFile.close()
         self.LogPrint("close %s file "% self.__CSV_GROUP_SUM )
