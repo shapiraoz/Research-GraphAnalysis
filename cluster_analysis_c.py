@@ -12,7 +12,7 @@ class cluster_analysis_c (base_c) :
           
     def __init__(self,graph,classifier = None,depth=2):
         
-        self.SUBGRAPH_MEMBERS_CRITERIA =25
+        self.SUBGRAPH_MEMBERS_CRITERIA =200
         self.SELF_WEIGHT_SUBJECT_RATIO =3
         self.MIN_SUBJECTS_IN_GROUPS=5
         self.MIN_EDGES_IN_GROUPS=3
