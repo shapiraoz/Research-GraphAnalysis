@@ -7,10 +7,11 @@ import networkx
 import classifier_c
 from base_c import base_c
 import utils
+from UserList import UserList
 
 class cluster_analysis_c (base_c) :
           
-    def __init__(self,graph,classifier = None,depth=2):
+    def __init__(self,graph,classifier = None,userDB=None,depth=2):
         
         self.SUBGRAPH_MEMBERS_CRITERIA =200
         self.SELF_WEIGHT_SUBJECT_RATIO =3
@@ -27,6 +28,9 @@ class cluster_analysis_c (base_c) :
         self.m_partition = None
         self.__m_dendorgram =None
         self.m_depth=depth
+        self.m_users_DB=userDB
+        
+              
         
         if classifier!=None :
             self.m_resultsDir ="%s/%s"% (utils.RESULT_DIR,classifier.GetName())
@@ -45,6 +49,11 @@ class cluster_analysis_c (base_c) :
     
     def SetClassifier(self,classifier):
         self.m_classifier=classifier
+    
+    def SetUserDB(self,userDB):
+        self.m_users_DB = userDB
+        
+    
     
     def __InitClusterAnalysis(self):
               
@@ -184,6 +193,27 @@ class cluster_analysis_c (base_c) :
         #print edgeList
         return edgeList,sum
        
+       
+    def __GetUserGroup(self,nodelist):
+        if self.m_users_DB==None:
+            return None
+        userList=[]
+        for node in nodelist:
+            subjectName = utils.GetNodeName(node,self.m_graph)
+            if subjectName != None:
+                users = self.m_users_DB.GetUsersFromSubject(subjectName)
+                if users!=None:
+                    for user in users:
+                        if not user in userList :
+                            userList.append(user)
+                
+        if len(userList) >0:
+            return userList
+        else:
+            return None
+        
+           
+       
     def __FindEdges(self,nodeList,graph):
         
         edgeList =[] #sort list
@@ -218,7 +248,7 @@ class cluster_analysis_c (base_c) :
         
         csvFile = open(self.__CSV_GROUP_SUM,"wb")
         writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['group number','number of subjects','number of edges', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','weight first','second edge','weight second','third edge','weight third'])
+        writer.writerow(['group number','number of subjects','number of edges','number of users', 'minimum Degree','Average Degree','maximum Degree','minimum weight','Average weight','maximum weight', 'the strongest edge','weight first','second edge','weight second','third edge','weight third'])
         if self.m_comMemClean==None or len(self.m_comMemClean)==0:
             self.LogPrint( "error cluster was not init !!!" )
             return  
@@ -271,7 +301,9 @@ class cluster_analysis_c (base_c) :
                 self.LogPrint("avg weight is %f" % avgWeight  )
                 name1,weight1,name2,weight2,name3,weight3 = self.__StrongestEdgesItems(edgeList,self.m_graph)
                 self.LogPrint( "names for insert :%s,%s,%s"% (name1,name2,name3))
-                writer.writerow([group[0],numMembers,edgeListLen,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
+                userList = self.__GetUserGroup(group[1])
+                numOfUsers = len(userList) if userList!=None else "user DB supply"   
+                writer.writerow([group[0],numMembers,edgeListLen,numOfUsers,minDeg,avgDeg,maxDeg,minWeight,avgWeight,maxWeight,name1,weight1,name2,weight2,name3,weight3])
             else:
                 self.LogPrint("skip writing line in %s to group %d ,number of edges in this group is small(%d)"%(self.__CSV_GROUP_SUM,group[0],edgeListLen))
         self.LogPrint("Done!!!")

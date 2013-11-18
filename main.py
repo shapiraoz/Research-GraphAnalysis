@@ -57,7 +57,8 @@ else:
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
     users_db= users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
-    print "number of users in data file is %d"% users_db.GetNumOfDBUsers()
+     
+    print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
     msg = "number of user in that graph %d"%num_of_users_in_graph
     print msg
@@ -70,7 +71,7 @@ else:
         copyGraph=workGraph.copy()
         classifier_best = classifier_c.classifier_c(workGraph,"best_practice",classifier_c.classifier_type_e.e_bestPractice)
        
-        cluster_best_analysis = cluster_analysis_c.cluster_analysis_c(workGraph,classifier_best)
+        cluster_best_analysis = cluster_analysis_c.cluster_analysis_c(workGraph,classifier_best,users_db)
         cluster_best_analysis.RunClusterStatistics()
         cluster_best_analysis.ShowResultCluster()
         

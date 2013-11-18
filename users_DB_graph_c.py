@@ -11,16 +11,13 @@ import utils
 
 class user_DB_graph_c(base_c):
 
-         
+   
     def __init(self):
+               
         if not os.path.exists( self.m_data_file_path):
             self.LogPrint("csv data file(%s) not found ... will return -1" % self.m_data_file_path)
             return -1
-        edges = self.m_graph.edges()
-        for edge in edges:
-            self.FindRawSubjects(utils.GetNodeName(edge[0],self.m_graph), utils.GetNodeName(edge[1],self.m_graph), True)
-            
-            
+       
   
     def __init__(self,graph,dataBaseCSVFilePath):
         self.m_data_file_path=dataBaseCSVFilePath
@@ -28,8 +25,9 @@ class user_DB_graph_c(base_c):
         self._REGEX_SUBJECT="[\w\d?!_&:\-/)(\".<>='+]+,"
         self.m_sub2UserDic={} #subject  are the keys
         self.m_user2subDic={} #users    are the keys
+        self.__init() 
         self.LoadDics()
-        #self.__init() 
+       
         
         
         
@@ -138,6 +136,16 @@ class user_DB_graph_c(base_c):
             if subject in self.m_user2subDic[user]:
                 return True
         return False
+            
+    def GetUsersFromSubject(self,subject):
+        if subject in self.m_sub2UserDic:
+            return self.m_sub2UserDic[subject] 
+        return None
+    
+    def GetSubjectsFromUser(self,user):
+        if user in self.m_user2subDic:
+            return self.m_user2subDic[user]
+        return None
             
     def GetNumOfDBUsers(self):
         return len(self.m_user2subDic)
