@@ -9,9 +9,14 @@ import graphCleaner
 import utils
 import classifier_c
 import users_DB_graph_c
+import networkx as nx
+import os
 
 def init():
-    utils.EnsureDir(utils.RESULT_DIR);
+    utils.EnsureDir(utils.RESULT_DIR)
+    if os.path.exists(utils.log_file): 
+        os.remove(utils.log_file)
+        utils.StartLog()
 
 
 
@@ -53,7 +58,10 @@ else:
         print "going to clean graph... minimun weight is set to %d"% args.weight
         gc = graphCleaner.graph_cleaner_c(graph,args.weight)
         workGraph = gc.CleanGraph()
-       
+        nodes_len=len(workGraph.nodes())
+        edges_len=len(workGraph.edges())   
+        utils.LOG("clean graph(min weight %d) is with :\n %d nodes\n %d edges "%(args.weight,nodes_len,edges_len))
+    
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
     users_db= users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 

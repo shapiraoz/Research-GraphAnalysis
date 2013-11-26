@@ -49,6 +49,10 @@ def LoadGraph(path):
         return
     graph = nx.read_graphml(path)
     print "graph is loaded from path %s" % path 
+    nodes_len=len(graph.nodes())
+    edges_len=len(graph.edges())
+    LOG("graph loaded with number of nodes=%d"%nodes_len)
+    LOG("graph loaded with number of edges=%d"%edges_len)
     return graph
 
 

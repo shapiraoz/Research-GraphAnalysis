@@ -47,6 +47,9 @@ def FillNodeName(graph):
 
     
 def LOG(strMsg):
+    EnsureDir(RESULT_DIR)
+    if not os.path.exists(log_file):
+        StartLog() 
     logging.debug(strMsg)
     
 def StartLog():
