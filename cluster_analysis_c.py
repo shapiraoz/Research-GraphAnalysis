@@ -201,7 +201,8 @@ class cluster_analysis_c (base_c) :
         for node in nodelist:
             subjectName = utils.GetNodeName(node,self.m_graph)
             if subjectName != None:
-                users = self.m_users_DB.GetUsersFromSubject(subjectName)
+                 
+                users = self.m_users_DB.GetUsersFromSubject(str(subjectName))
                 if users!=None:
                     for user in users:
                         if not user in userList :
@@ -287,7 +288,7 @@ class cluster_analysis_c (base_c) :
                 
                 subGraph.name="%s.%d"%(self.m_graph.name, group[0])
                 calssCa = classifier_c.classifier_c(subGraph,self.m_classifier.GetName(),self.m_classifier.GeyType())
-                ca=cluster_analysis_c(subGraph,calssCa,self.m_depth-1)
+                ca=cluster_analysis_c(subGraph,calssCa,self.m_users_DB,self.m_depth-1)
                 ca.RunClusterStatistics()
                 ca.ShowResultCluster()
                 self.LogPrint("create new subGraph and run the analysis graph name:%s"%subGraph.name)
