@@ -84,7 +84,7 @@ class cluster_analysis_c (base_c) :
                 if len(self.m_comMem[cSize[0]])==1:
                     self.LogPrint( "have value is only one member...")
                 self.m_comMemClean[cSize[0]] = self.m_comMem[cSize[0]]
-        
+               
         for memberIDs in self.m_comMemClean.iteritems():
             self.m_comMemNames[memberIDs[0]]=[]
             for member in memberIDs[1]:
@@ -212,8 +212,7 @@ class cluster_analysis_c (base_c) :
             return userList
         else:
             return None
-        
-           
+                  
        
     def __FindEdges(self,nodeList,graph):
         

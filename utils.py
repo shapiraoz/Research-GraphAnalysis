@@ -2,6 +2,7 @@ import os
 import csv
 import networkx as nx
 import logging
+import pickle
 
 
 
@@ -63,6 +64,13 @@ def Init(graph):
     FillNodeName(graph)
 
 
+def DumpObjToFile(obj,filePath):
+    if os.path.exists(filePath):
+        os.remove(filePath)
+    handel = open(filePath,'wb')
+    pickle.dump(obj, handel)
+    handel.close() 
+
 def GetNodeNameList():
     return nodeNameList
 
@@ -87,5 +95,27 @@ def SaveStatistics2File(filePath ,header, dictionary):
     for k,v in dictionary.items():
         writer.writerow([k,v])
     csvFile.close()
+    
+    
+def SaveStatistics2File_DicVal(filePath ,header, dictionary):# repcate manuly...
+    if os.path.exists(filePath):
+        os.remove(filePath)
+    csvFile = open(filePath,"wb")
+    writer = csv.writer(csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(header)
+    
+    for k,v in dictionary.items():
+        list=[]
+        list.append(k)
+        for item in v:
+            if isinstance(item ,basestring):
+                list.append(item.lstrip('\n\r\"').replace('"',''))
+            else:
+                list.append(item)
+    #print "new line\n%s"% list
+        writer.writerow(list)
+    csvFile.close()
+    
+    
     
     

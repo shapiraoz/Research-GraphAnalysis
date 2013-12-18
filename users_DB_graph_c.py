@@ -7,6 +7,7 @@ from base_c import base_c
 import csv
 import re
 import utils
+from UserList import UserList
 
 
 class user_DB_graph_c(base_c):
@@ -22,6 +23,7 @@ class user_DB_graph_c(base_c):
     def __init__(self,graph,dataBaseCSVFilePath):
         self.m_data_file_path=dataBaseCSVFilePath
         self.m_graph=graph
+        self.m_is_loaded=False
         self._REGEX_SUBJECT="[\w\d?!_&:\-/)(\".<>='+]+,"
         self.m_sub2UserDic={} #subject  are the keys
         self.m_user2subDic={} #users    are the keys
@@ -71,7 +73,7 @@ class user_DB_graph_c(base_c):
                 column+=1
                 
         ifile.close()                
-        
+        self.m_is_loaded=True
                     
         
     def FindRawSubjects(self,subject1,subject2,update=False):
@@ -102,8 +104,7 @@ class user_DB_graph_c(base_c):
                                 self.__AddToSub2User(subject2, user)
         return ret                
    
-   
-    def GetNumUsersGraph(self):
+    def GetUsersGraph(self):
         edges = self.m_graph.edges()
         usersList=[]
         for edge in edges:
@@ -119,10 +120,12 @@ class user_DB_graph_c(base_c):
                             if not user in usersList:
                                 usersList.append(user)
                                 break
-        #print "all users :"
-        #for user in usersList:
-            #print "%s,"%user
-        return len(usersList)
+        return usersList
+    
+   
+    def GetNumUsersGraph(self):
+        
+        return len(self.GetUsersGraph())
                         
         
     def IsSubjectInUser(self,user,subject):
@@ -146,6 +149,15 @@ class user_DB_graph_c(base_c):
         if user in self.m_user2subDic:
             return self.m_user2subDic[user]
         return None
-            
+    
+    def IsLoaded(self):
+        return self.m_is_loaded
+    
+    def GetSubject2UsersDic(self):
+        return self.m_sub2UserDic
+    
+    def GetUsers2SubjectDic(self):
+        return self.m_user2subDic
+                
     def GetNumOfDBUsers(self):
         return len(self.m_user2subDic)

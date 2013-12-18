@@ -12,6 +12,7 @@ import users_DB_graph_c
 import networkx as nx
 import os
 
+import data_set_creator_c
 def init():
     utils.EnsureDir(utils.RESULT_DIR)
     if os.path.exists(utils.log_file): 
@@ -25,6 +26,7 @@ parser.add_argument("-g",'--graphPath' ,type=file,help='graph file in graphml fo
 parser.add_argument("-s",'--statistics',action="store_true",help='run statistics  analysis')
 parser.add_argument("-c",'--cluster',action="store_true",help='run clustring analysis')
 parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight for cleaning the graph")
+parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
 icom ={}
 
 def tests(graph):
@@ -64,13 +66,23 @@ else:
     
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
-    users_db= users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
+    users_db=users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
     msg = "number of user in that graph %d"%num_of_users_in_graph
     print msg
     utils.LOG(msg)
+    
+    
+    
+    if args.dataset:
+        dSc= data_set_creator_c.data_set_creator_c(users_db)
+        dSc.create_data_set()
+        dSc.EncodedDataSet()
+        dSc.DumpDataSets()
+        #dSc.DumpTestTest()
+    
     if args.statistics :
         graph_statistics.DegreeAnayltor(workGraph)
         graph_statistics.EdgesAnayltor(workGraph)
