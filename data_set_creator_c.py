@@ -4,6 +4,7 @@ from base_c import base_c
 import users_DB_graph_c
 import pickle
 import hashlib
+import csv
 
 from random import shuffle
 from ctypes import util
@@ -160,11 +161,12 @@ class data_set_creator_c( base_c ):
             utils.DumpObjToFile(self.m_usersDataSetsEnc[i], encodedDataFile)
          '''
             #self.m_test_setsEnc[i]={}
-            
+                    
         self.LogPrint("saving all hash-string to file ")
         
         utils.DumpObjToFile(self.m_string_hash,self.__STRING_HASH_FILE_NAME)
-            
+        #print "hash look like:",self.m_string_hash
+        
         '''
             encodedDataSetDic ={}
             userCont =0
@@ -186,6 +188,56 @@ class data_set_creator_c( base_c ):
             self.LogPrint("finish encoded data!! dumping data to %s file "% self.m_usersDataSetsEnc)
         '''
         self.m_isEncoded =True
+        
+    def __verfiyDicStr(self,dic,keyStr):
+        #print "size=", len(self.m_string_hash)
+        intKey= int(keyStr)
+        #print "key=", intKey
+        
+        if not self.m_string_hash.has_key(intKey):
+            self.LogPrint("Error: someone missing the key %s " % keyStr)
+            return False
+            str = self.m_string_hash[keyStr]
+            if keyStr != self.__EncodedString(str):
+                self.LogPrint("Error :hash is not the same like giving hash!!!")                     
+                return False
+        return True
+        
+    def VerifyHash(self,testedfilePath):
+        ifile = open(testedfilePath,"rb")
+        reader = csv.reader(ifile)
+        rowCnt =0
+        for row in reader:
+            if rowCnt==0:
+                rowCnt+=1
+                continue
+            columnCnt = 0
+            usrStr=""
+            for col in row:
+                if columnCnt==0:
+                    userHash =int(col)
+                    # add this section to function !!!
+                    if not self.__verfiyDicStr(self.m_string_hash,userHash):
+                        return False
+                    
+                    usrStr = self.m_string_hash[userHash]
+                    user2Subjects = self.m_user_db.GetUsers2SubjectDic()
+                    if not user2Subjects.has_key(usrStr):
+                        self.LogPrint("Error :user %s didn't found at the userDB..."% usrStr)
+                        return False
+                else:
+                    subjectHash=int(col)
+                    if not self.__verfiyDicStr(self.m_string_hash, subjectHash):
+                        return False
+                    subjectStr = self.m_string_hash[subjectHash] 
+                    if not subjectStr in user2Subjects[usrStr]:
+                        self.LogPrint("Error :missing subject %s from user %s at the db... "%(subjectStr,usrStr))
+                        return False
+                                    
+                columnCnt+=1
+                
+        return True            
+            
         
 
 
@@ -215,16 +267,17 @@ class data_set_creator_c( base_c ):
                 self.LogPrint("dumping encoded data data Set path =%s ,test Set path =%s" % (data_file_path_enc,test_file_path_enc))
                 utils.SaveStatistics2File_DicVal(data_file_path_enc,['user','subject'],self.m_usersDataSetsEnc[i])
                 utils.SaveStatistics2File_DicVal(test_file_path_enc,['user','subject'],self.m_test_setsEnc[i])
+                self.LogPrint("success to dump encoded data set to %s  ,verifying data..." %data_file_path)
+                if not self.VerifyHash(data_file_path_enc):
+                    self.LogPrint("verifcation failed!!!")
+                    return
+                self.LogPrint("success!!")
+            
+            
             self.LogPrint("dumping data set and test set's files...")
             utils.SaveStatistics2File_DicVal(data_file_path, ['user','subject'],self.m_usersDataSets[i])
             utils.SaveStatistics2File_DicVal(test_file_path,['user','subject'],self.m_test_sets[i])
             
-            
-            
-    def DumpTestTest(self):
-        if not self.m_isReady:
-            self.LogPrint("can't dump test sets...test sets is not reay")
-            return
-        fileName = "%s/%s" % (self.__DATA_SETS_DIR,"testSet.csv" )
-        utils.SaveStatistics2File(fileName,['user','subject'] , self.m_test_sets)
+           
+   
             
