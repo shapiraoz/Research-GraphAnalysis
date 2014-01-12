@@ -240,6 +240,10 @@ class cluster_analysis_c (base_c) :
                 weightList.append(weight)
         return weightList
         
+    def GetClusterGroups(self):
+        return self.m_comMemClean
+          
+        
     def RunClusterStatistics(self):
         self.LogPrint("Run Cluster Statistics...saving data on %s file" % self.__CSV_GROUP_SUM)
         self.LogPrint("=======================================================================")

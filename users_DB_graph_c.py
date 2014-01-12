@@ -20,7 +20,7 @@ class user_DB_graph_c(base_c):
             return -1
        
   
-    def __init__(self,graph,dataBaseCSVFilePath):
+    def __init__(self,graph=None,dataBaseCSVFilePath):
         self.m_data_file_path=dataBaseCSVFilePath
         self.m_graph=graph
         self.m_is_loaded=False
@@ -105,6 +105,9 @@ class user_DB_graph_c(base_c):
         return ret                
    
     def GetUsersGraph(self):
+        if self.m_graph==None:
+            self.LogPrint("Error:no graph is loaded for get users!!!")
+            return None
         edges = self.m_graph.edges()
         usersList=[]
         for edge in edges:
@@ -127,6 +130,11 @@ class user_DB_graph_c(base_c):
         
         return len(self.GetUsersGraph())
                         
+    def GetCopyUser2SubjectsDic(self):
+        return self.m_user2subDic.copy()
+        
+    def GetCopySubjecst2UsersDir(self):
+        return self.m_sub2UserDic.copy()    
         
     def IsSubjectInUser(self,user,subject):
         if subject in self.m_sub2UserDic :

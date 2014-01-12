@@ -27,6 +27,7 @@ parser.add_argument("-s",'--statistics',action="store_true",help='run statistics
 parser.add_argument("-c",'--cluster',action="store_true",help='run clustring analysis')
 parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight for cleaning the graph")
 parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
+parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
 icom ={}
 
 def tests(graph):
@@ -66,7 +67,8 @@ else:
     
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
-    users_db=users_DB_graph_c.user_DB_graph_c(workGraph,"data_50K.csv") 
+    userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
+    users_db=users_DB_graph_c.user_DB_graph_c(workGraph,userDBfile) 
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()

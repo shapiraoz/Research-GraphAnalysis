@@ -11,6 +11,7 @@ RESULT_DIR ="results"
 log_file ="%s/graph_analysis.log"% RESULT_DIR 
 startedLog=False
 IsNodeNameListInit=False
+DEF_USER_DB_FILE="data_50K.csv"
 
 
 ########################################################################

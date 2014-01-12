@@ -6,6 +6,8 @@ import random
 import cPickle as pickle
 import collections
 import utils
+import argparse
+
 ########################################################################
 users_count = 0
 unique_interests_count = 0
@@ -42,14 +44,26 @@ def gen_node(name, node_type, graph):
 				if give_up_counter > 100:
 					print "Err"
 	return node_id
+
+
+############################################################################3
+#main
+parser = argparse.ArgumentParser(description='parse to graph ')
+parser.add_argument("-d",'--dataFilePath' ,type=file,help='csv data file for creating graph in graphal format')
+
+args =parser.parse_args()
+
+dataFilePath=args.dataFilePath.name if args.dataFilePath.name!=None else 'data.csv'
+
 ########################################################################
 # Create graph
 pinterest_graph = nx.Graph()
 users_interests = {}
 ########################################################################
 # open CSV file
-ifile  = open('data.csv', "rb")
+ifile  = open(dataFilePath, "rb")
 reader = csv.reader(ifile)
+print "start parsing file %s" % dataFilePath
 ########################################################################
 #parse CSV and generate graph
 rownum = 0
