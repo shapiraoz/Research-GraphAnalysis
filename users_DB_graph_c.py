@@ -20,7 +20,7 @@ class user_DB_graph_c(base_c):
             return -1
        
   
-    def __init__(self,graph=None,dataBaseCSVFilePath):
+    def __init__(self,dataBaseCSVFilePath,graph=None,):
         self.m_data_file_path=dataBaseCSVFilePath
         self.m_graph=graph
         self.m_is_loaded=False

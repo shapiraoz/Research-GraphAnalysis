@@ -3,7 +3,7 @@ import csv
 import networkx as nx
 import logging
 import pickle
-
+import mmap
 
 
 nodeNameList={}
@@ -65,6 +65,14 @@ def Init(graph):
     FillNodeName(graph)
 
 
+def LoadFileString2Mem(filePath):
+    if os.path.exists(filePath):
+        size = os.stat(filePath).st_size
+        f = open(filePath)
+        data = mmap.mmap(f.fileno(), size, access=mmap.ACCESS_READ) 
+        return data
+    return None
+
 def DumpObjToFile(obj,filePath):
     if os.path.exists(filePath):
         os.remove(filePath)
@@ -75,9 +83,9 @@ def DumpObjToFile(obj,filePath):
 def GetNodeNameList():
     return nodeNameList
 
-def GetNodeName(index,graph):
+def GetNodeName(index,graph=None):
     global IsNodeNameListInit
-    if not IsNodeNameListInit:
+    if not IsNodeNameListInit and graph !=None:
         FillNodeName(graph)
     if index != None:
         #print index
@@ -96,6 +104,17 @@ def SaveStatistics2File(filePath ,header, dictionary):
     for k,v in dictionary.items():
         writer.writerow([k,v])
     csvFile.close()
+    
+def translateNodeList2SubList(nodeList):
+    global IsNodeNameListInit
+    if not IsNodeNameListInit:
+        return None
+    SubList =[]
+    for nodeId in nodeList:
+        subName=GetNodeName(nodeId)
+        if subName != None and not subName in SubList:
+            SubList.append(subName)
+    return SubList
     
     
 def SaveStatistics2File_DicVal(filePath ,header, dictionary):# repcate manuly...

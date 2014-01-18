@@ -11,6 +11,8 @@ import classifier_c
 import users_DB_graph_c
 import networkx as nx
 import os
+import re
+import generate_mac_table_c
 
 import data_set_creator_c
 def init():
@@ -28,6 +30,8 @@ parser.add_argument("-c",'--cluster',action="store_true",help='run clustring ana
 parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight for cleaning the graph")
 parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
 parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
+parser.add_argument("-t","--machineTable",action="store_true",help='create machine learning table')
+
 icom ={}
 
 def tests(graph):
@@ -68,7 +72,7 @@ else:
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
     userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
-    users_db=users_DB_graph_c.user_DB_graph_c(workGraph,userDBfile) 
+    users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph) 
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
@@ -89,6 +93,7 @@ else:
         graph_statistics.DegreeAnayltor(workGraph)
         graph_statistics.EdgesAnayltor(workGraph)
         graph_statistics.NodeDegreeCorrelation(workGraph)
+    cluster_best_analysis =None
     if args.cluster:
         copyGraph=workGraph.copy()
         classifier_best = classifier_c.classifier_c(workGraph,"best_practice",classifier_c.classifier_type_e.e_bestPractice)
@@ -96,6 +101,15 @@ else:
         cluster_best_analysis = cluster_analysis_c.cluster_analysis_c(workGraph,classifier_best,users_db)
         cluster_best_analysis.RunClusterStatistics()
         cluster_best_analysis.ShowResultCluster()
+    if args.machineTable:
+        cl_an = cluster_best_analysis if cluster_best_analysis!=None else None
+        if users_db != None:
+            generate_mac_table = generate_mac_table_c.generate_mac_table_c(workGraph,cl_an,False,None,users_db,None)
+        else:
+            generate_mac_table = generate_mac_table_c.generate_mac_table_c(workGraph,cl_an,False,None,None,userDBfile)
+        
+        generate_mac_table.GenerateMahineLearingTable()
+        
         
         #classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
         #cluster_best_analysisNetworkx = cluster_analysis_c.cluster_analysis_c(copyGraph,classifier_networkX)
