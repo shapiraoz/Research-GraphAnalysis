@@ -15,12 +15,13 @@ class user_DB_graph_c(base_c):
    
     def __init(self):
                
-        if not os.path.exists( self.m_data_file_path):
+        if not os.path.exists( self.m_data_file_path,):
             self.LogPrint("csv data file(%s) not found ... will return -1" % self.m_data_file_path)
             return -1
        
   
-    def __init__(self,dataBaseCSVFilePath,graph=None,):
+    def __init__(self,dataBaseCSVFilePath,graph=None,stringHash=None):
+        
         self.m_data_file_path=dataBaseCSVFilePath
         self.m_graph=graph
         self.m_is_loaded=False
@@ -28,7 +29,14 @@ class user_DB_graph_c(base_c):
         self.m_sub2UserDic={} #subject  are the keys
         self.m_user2subDic={} #users    are the keys
         self.__init() 
-        self.LoadDics()
+        self.m_Encoded =False
+        if stringHash != None :
+            self.m_Encoded = True
+            self.m_stringHash = stringHash
+        self.LoadDics()    
+         
+        
+        
        
         
         
@@ -47,21 +55,34 @@ class user_DB_graph_c(base_c):
             return -1
         ifile  = open(self.m_data_file_path, "rb")
         reader = csv.reader(ifile)
-        user=""
+        rowLine = 0
+        
         for row in reader:
+            if rowLine == 0:
+                rowLine+=1
+                continue
             column = 0
             for col in row:
                 if column==0:
-                    user = col
+                    if self.m_Encoded:
+                        #print col
+                        userHash = int(col)
+                        user = self.m_stringHash[userHash]
+                    else:
+                        user = col
                     #print "user=%s"%user
-                    if not user=="":
+                    if not user=="" or not user == None:
                         if not user in self.m_user2subDic:
                             subjectList=[]
                             self.m_user2subDic[user]=subjectList
                 else:
                    
-                    if not user=="":
-                        subj = col
+                    if not user=="" or not user == None:
+                        if self.m_Encoded:
+                            subHah = int(col)
+                            subj = self.m_stringHash[subHah]
+                        else:
+                            subj = col
                         if subj==None or subj=="":
                             continue
                         #print "subject=%s"%subj
@@ -71,7 +92,7 @@ class user_DB_graph_c(base_c):
                             self.m_sub2UserDic[subj]=usersList
                         self.m_sub2UserDic[subj].append(user)
                 column+=1
-                
+            rowLine    
         ifile.close()                
         self.m_is_loaded=True
                     
@@ -111,8 +132,13 @@ class user_DB_graph_c(base_c):
         edges = self.m_graph.edges()
         usersList=[]
         for edge in edges:
-            sub1 = utils.GetNodeName(edge[0],self.m_graph)
-            sub2 = utils.GetNodeName(edge[1],self.m_graph)
+            if self.m_Encoded:
+                sub1Hash =int (utils.GetNodeName(edge[0],self.m_graph))
+                sub1 = self.m_stringHash[sub1Hash]
+                
+                sub2Hash = int ( utils.GetNodeName(edge[1],self.m_graph))
+                sub2 = self.m_stringHash[sub2Hash]
+             
             if sub1==None or sub2==None or sub1==sub2:
                 continue
             if sub1 in self.m_sub2UserDic:

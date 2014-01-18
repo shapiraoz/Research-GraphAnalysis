@@ -20,15 +20,17 @@ class generate_mac_table_c(base_c):
         self.m_userList = self.m_userDB.GetUsersGraph()
         self.m_user2subjectItem = self.m_userDB.GetCopyUser2SubjectsDic().items()
         
-        if len(self.m_userList)==0:
-            self.LogPrint("no user list from UserDB...can't proceed...")
-            return 
         if isGraphEncoded and stringsHash==None :
             self.LogPrint("Error can't work without object for encoded numbers... ")
             return
         self.m_isGraphEncoded = isGraphEncoded
         if isGraphEncoded and stringsHash != None:
             self.m_stringHash = stringsHash
+        
+        if len(self.m_userList)==0:
+            self.LogPrint("no user list from UserDB...can't proceed...")
+            #return 
+        
        
         if cluster_analysis==None:
             self.m_cluser_analysis = cluster_analysis_c.cluster_analysis_c(graph,None,self.m_userDB,1)
@@ -38,6 +40,7 @@ class generate_mac_table_c(base_c):
         self.m_clusterGroups = self.m_cluser_analysis.GetClusterGroups().items()
         
         self.__TABLE_FILE_PATH = utils.RESULT_DIR + "/machine_learning_tbl.csv"
+        print "init path =%s" % self.__TABLE_FILE_PATH
         self.m_clusters_items = self.m_cluser_analysis.GetClusterGroups().items()
         self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of user per subject "}
         self.m_numGroups = len(self.m_clusters_items)
@@ -64,7 +67,7 @@ class generate_mac_table_c(base_c):
         self.m_userInGroup={}
         
         for group in self.m_clusterGroups:
-            foundInGroup={}
+            
             groupsubjectList = utils.translateNodeList2SubList(group[1])
             
             for user,subjects in self.m_user2subjectItem : 

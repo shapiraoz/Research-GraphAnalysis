@@ -12,7 +12,7 @@ log_file ="%s/graph_analysis.log"% RESULT_DIR
 startedLog=False
 IsNodeNameListInit=False
 DEF_USER_DB_FILE="data_50K.csv"
-
+STRING_HASH="string_hash.pkl"
 
 ########################################################################
 # String util functions
@@ -78,7 +78,14 @@ def DumpObjToFile(obj,filePath):
         os.remove(filePath)
     handel = open(filePath,'wb')
     pickle.dump(obj, handel)
-    handel.close() 
+    handel.close()
+     
+def LoadObjFromFile(filePath):
+    if not os.path.exists(filePath):
+        print "file %s is not exist can't load file..." % filePath
+        return None
+    handle = open(filePath,'rb')
+    return pickle.load(handle)
 
 def GetNodeNameList():
     return nodeNameList

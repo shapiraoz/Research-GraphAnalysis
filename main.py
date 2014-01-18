@@ -13,6 +13,7 @@ import networkx as nx
 import os
 import re
 import generate_mac_table_c
+import pickle
 
 import data_set_creator_c
 def init():
@@ -31,6 +32,7 @@ parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight 
 parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
 parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
 parser.add_argument("-t","--machineTable",action="store_true",help='create machine learning table')
+parser.add_argument("-e","--encoded",action="store_true",help="graph is encoded ")
 
 icom ={}
 
@@ -42,12 +44,21 @@ def tests(graph):
 
 
 #******************main*******************
-
+WeHaveStringsHash =False
 args =parser.parse_args()
 if not len(sys.argv) > 1:
     print "no arguments has insert"
     parser.print_help(None)
     sys.exit(1)
+
+if os.path.exists(utils.STRING_HASH):
+    WeHaveStringsHash = True
+    print "loading encoding data...(will take time)"
+    stringHash= utils.LoadObjFromFile(utils.STRING_HASH)
+    if stringHash != None:
+        print "string hash have been loaded !!!"
+    
+    
     
 if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
@@ -72,7 +83,10 @@ else:
     graph_statistics.Init(workGraph)
     print "checking for data on users ..."
     userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
-    users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph) 
+    if args.encoded and stringHash != None:
+        users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,stringHash)
+    else:
+        users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph) 
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
