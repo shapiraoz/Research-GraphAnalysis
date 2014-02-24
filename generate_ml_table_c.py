@@ -130,7 +130,10 @@ class generate_ml_table_c(base_c):
                 #usrStr = self.__getEncodedValue(user) if self.m_isGraphEncoded else user
                 usrStr = user
                 if usrStr != None:
-                    rowList.append(usrStr)
+                    if self.m_isGraphEncoded:
+                        rowList.append(utils.EncodeString(usrStr))
+                    else:
+                        rowList.append(usrStr)
                 else:
                     self.LogPrint("no user ... will continue")
                     continue
@@ -139,7 +142,10 @@ class generate_ml_table_c(base_c):
                 if subStr == None :
                     self.LogPrint("problem with some subject... (is None)")
                 else:
-                    rowList.append(subStr) 
+                    if self.m_isGraphEncoded:
+                        rowList.append(utils.EncodeString(subStr))
+                    else:
+                        rowList.append(subStr) 
                     sublen= len(subjects)
                     rowList.append(sublen)
                     users = self.m_userDB.GetUsersFromSubject(subStr)
