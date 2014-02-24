@@ -67,6 +67,9 @@ class user_DB_graph_c(base_c):
                     if self.m_Encoded:
                         #print col
                         userHash = int(col)
+                        if not self.m_stringHash.has_key(userHash):
+                            print "Error: problem missing item from dic..."
+                            continue
                         user = self.m_stringHash[userHash]
                     else:
                         user = col
@@ -76,11 +79,15 @@ class user_DB_graph_c(base_c):
                             subjectList=[]
                             self.m_user2subDic[user]=subjectList
                 else:
-                   
+                    #print "column=%d"%  column
                     if not user=="" or not user == None:
                         if self.m_Encoded:
                             subHah = int(col)
+                            if not self.m_stringHash.has_key(subHah):
+                                print "Error : problem missing subject item in dic..."
+                                continue
                             subj = self.m_stringHash[subHah]
+                            
                         else:
                             subj = col
                         if subj==None or subj=="":
@@ -99,7 +106,7 @@ class user_DB_graph_c(base_c):
         
     def FindRawSubjects(self,subject1,subject2,update=False):
         ret=False
-        print "subject1=%s ,subject2=%s"%(subject1,subject2)
+        #print "subject1=%s ,subject2=%s"%(subject1,subject2)
         if subject1 == None or subject2 == None or subject1 == subject2:
             return ret
         with open(self.m_data_file_path, 'r') as inF:
@@ -138,7 +145,11 @@ class user_DB_graph_c(base_c):
                 
                 sub2Hash = int ( utils.GetNodeName(edge[1],self.m_graph))
                 sub2 = self.m_stringHash[sub2Hash]
-             
+            else:
+                
+                sub1 = utils.GetNodeName(edge[0],self.m_graph)
+                sub2 = utils.GetNodeName(edge[1],self.m_graph) 
+                #print "sub1 = %s sub2 = %s" %(sub1,sub2)
             if sub1==None or sub2==None or sub1==sub2:
                 continue
             if sub1 in self.m_sub2UserDic:

@@ -115,7 +115,7 @@ stats = {}
 interests_degrees_vector = pinterest_graph.degree()
 
 interests_degree_distribution = collections.Counter(interests_degrees_vector)
-print "interests_degree_distribution= ", interests_degree_distribution
+#print "interests_degree_distribution= ", interests_degree_distribution
 stats['interests_degree_distribution'] = interests_degree_distribution
 ########################################################################
 # print stats

@@ -12,7 +12,7 @@ import users_DB_graph_c
 import networkx as nx
 import os
 import re
-import generate_mac_table_c
+import generate_ml_table_c
 import pickle
 
 import data_set_creator_c
@@ -84,7 +84,9 @@ else:
     print "checking for data on users ..."
     userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
     if args.encoded and stringHash != None:
+        print "creating user_db_form by encoded file..."
         users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,stringHash)
+        
     else:
         users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph) 
      
@@ -118,9 +120,10 @@ else:
     if args.machineTable:
         cl_an = cluster_best_analysis if cluster_best_analysis!=None else None
         if users_db != None:
-            generate_mac_table = generate_mac_table_c.generate_mac_table_c(workGraph,cl_an,False,None,users_db,None)
+            generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,users_db,None)
+            
         else:
-            generate_mac_table = generate_mac_table_c.generate_mac_table_c(workGraph,cl_an,False,None,None,userDBfile)
+            generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,None,userDBfile)
         
         generate_mac_table.GenerateMahineLearingTable()
         

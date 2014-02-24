@@ -3,7 +3,6 @@ import utils
 from base_c import base_c
 import users_DB_graph_c
 import pickle
-import hashlib
 import csv
 
 from random import shuffle
@@ -101,7 +100,7 @@ class data_set_creator_c( base_c ):
         return self.__SetFilePathToResult(pathFileName)
         
     def __EncodedString(self,str):
-        return int (hashlib.md5(str).hexdigest(),16)
+        return utils.EncodeString(str)
         
     def __EncodedSet(self,set,dump2fileName):
         encodedSet ={}

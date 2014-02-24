@@ -4,6 +4,7 @@ import networkx as nx
 import logging
 import pickle
 import mmap
+import hashlib
 
 
 nodeNameList={}
@@ -144,5 +145,7 @@ def SaveStatistics2File_DicVal(filePath ,header, dictionary):# repcate manuly...
     csvFile.close()
     
     
+def EncodeString(str):
+    return int (hashlib.md5(str).hexdigest(),16)
     
     

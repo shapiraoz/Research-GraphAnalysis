@@ -316,9 +316,9 @@ class cluster_analysis_c (base_c) :
         
             
     def RunBestPartitionIndex(self):
-        print "m_partition len before: %d"%len(self.m_partition)
+        self.LogPrint("m_partition len before: %d"%len(self.m_partition))
         partition = community.best_partition(self.m_graph, self.m_partition)
-        print "m_partition len after %d"% len(self.m_partition)
+        self.LogPrint("m_partition len after %d"% len(self.m_partition))
         return partition 
             
             
