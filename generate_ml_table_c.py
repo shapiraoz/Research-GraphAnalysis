@@ -4,6 +4,8 @@ import utils
 import users_DB_graph_c
 import cluster_analysis_c
 from base_c import base_c
+from random import randint
+
 import csv
 import os
 
@@ -12,7 +14,7 @@ class generate_ml_table_c(base_c):
     
     def __init__(self , graph , cluster_analysis = None , isGraphEncoded = False , stringsHash = None , usersDB = None , dataFilePath = None):
         
-        
+        self.LogPrint("Init all machine learning table creator components ....")
         if usersDB==None and dataFilePath != None:
             self.LogPrint("no user DB ,will create user DB ")
             self.m_userDB = users_DB_graph_c.user_DB_graph_c(dataFilePath,graph)
@@ -20,7 +22,8 @@ class generate_ml_table_c(base_c):
         else:
             self.m_userDB = usersDB
         self.m_userList = self.m_userDB.GetUsersGraph()
-        self.m_user2subjectItem = self.m_userDB.GetCopyUser2SubjectsDic().items()
+        self.m_user2subject = self.m_userDB.GetCopyUser2SubjectsDic().copy()
+        self.m_user2subjectItem = self.m_user2subject.items()
         
         if isGraphEncoded and stringsHash==None :
             self.LogPrint("Error can't work without object for encoded numbers... ")
@@ -42,19 +45,52 @@ class generate_ml_table_c(base_c):
             
         self.m_clusterGroups = self.m_cluser_analysis.GetClusterGroups().items()
         
-        self.__TABLE_FILE_PATH = utils.RESULT_DIR + "/machine_learning_tbl.csv"
+        self.__TABLE_FILE_PATH = utils.DEF_RESULT_DIR + "/machine_learning_tbl.csv"
         #print "init path =%s" % self.__TABLE_FILE_PATH
         self.m_clusters_items = self.m_cluser_analysis.GetClusterGroups().items()
         self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of user per subject "}
         self.m_numGroups = len(self.m_clusters_items)
         
         for i in range(0,self.m_numGroups):
-            self.m_table[i+4]="subject in cluster %d" % self.m_clusters_items[i][0]  
+            self.m_table[i+len(self.m_table)]="subject in cluster %d" % self.m_clusters_items[i][0] 
         for i in range(0,self.m_numGroups):
-            self.m_table[i+4+self.m_numGroups] = "user in cluster %d " % self.m_clusters_items[i][0] 
+            self.m_table[i+len(self.m_table)+self.m_numGroups] = "user in cluster %d " % self.m_clusters_items[i][0] 
+        self.m_groupSubjectList={}
+                
+        self.__init_GroupBlongToUsers() 
+        self.LogPrint("done Init!!!")
+           
             
-        self.__init_GroupBlongToUsers()    
-            
+    
+    
+    def AddFalseSubjectUsers(self,enforceCoefficient=1):
+        self.LogPrint("adding fake subjects... ")
+        num_users = self.m_userDB.GetNumOfDBUsers()
+        num2mul = enforceCoefficient
+        usersKeys= self.m_user2subject.keys()
+        for user,subjects in self.m_userDB.GetUsers2SubjectDic().iteritems():
+            lenSubject = len(subjects)
+            addSunbject =int (lenSubject* enforceCoefficient)
+            print "addSunbject = %d real subject =%d"% (addSunbject,len(subjects)) 
+            userIndex = randint(0,num_users-1)
+            selectedUserSubjectsKey = usersKeys[userIndex]
+            selectedUserSubjects = self.m_user2subject[selectedUserSubjectsKey]
+            ranUsrSubj=  len(selectedUserSubjects)
+            if ranUsrSubj > 1 and addSunbject > 1: 
+                for i in range(addSunbject):
+                   subjectIndex= randint(0,ranUsrSubj-1)
+                   selectSubject =selectedUserSubjects[subjectIndex]
+                   #print "selectSubject = %s" % selectSubject 
+                   if not selectSubject in subjects:
+                       self.m_user2subject[user].append( selectSubject )
+                       #print "ok %s"% selectSubject
+                   else:
+                       i-=1
+                       #print "need to do something ...i=%d" % i                   
+             
+                
+            print "users =%s have %d subject " % (user,lenSubject)
+    
             
     def __getEncodedValue(self,strVal):
         #print "strVal=%s"% strVal
@@ -76,7 +112,9 @@ class generate_ml_table_c(base_c):
             if self.m_isGraphEncoded:
                 groupsubjectList = self.__getEncodeGroupSubjectList(groupsubjectList_clean)
             else:
-                groupsubjectList = groupsubjectList_clean   
+                groupsubjectList = groupsubjectList_clean 
+				#group[0]=name
+            self.m_groupSubjectList[group[0]]= groupsubjectList 
             for user,subjects in self.m_user2subjectItem : 
                 foundInGroup=False
                 for subject in subjects:
@@ -150,28 +188,16 @@ class generate_ml_table_c(base_c):
                     rowList.append(sublen)
                     users = self.m_userDB.GetUsersFromSubject(subStr)
                     if users == None :
-                        self.LogPring("no user found for %s subject" % subStr)
+                        self.LogPrint("no user found for %s subject" % subStr)
                         lenUser=0
                     else:
                         lenUser=len(users)
                     rowList.append(lenUser)
-                    indexGroup=0
-                    for group in self.m_clusterGroups:
-                        indexGroup=+1
-                        groupName = group[0]
-                       
-                        groupSubjectsIds = group[1]
-                        groupSubjects_clean = utils.translateNodeList2SubList(groupSubjectsIds)
-                        
-                        if self.m_isGraphEncoded :
-                            groupSubjects = self.__getEncodeGroupSubjectList(groupSubjects_clean)
-                        else:
-                            groupSubjects = groupSubjects_clean
-                        #print "group subjects =", groupSubjects
-                        #print  "subject =%s" % subStr
-                        
-                         
-                        if subStr in groupSubjects:
+                    
+                    #print  self.m_groupSubjectList
+                    for subjectList in self.m_groupSubjectList.values():
+                                            
+                        if subStr in subjectList:
                             existIn =1
                             #print "found %s in group %s index list = %d r" %(subStr,groupName,indexGroup)
                         else:

@@ -9,7 +9,6 @@ import re
 import utils
 from UserList import UserList
 
-
 class user_DB_graph_c(base_c):
 
    
@@ -33,8 +32,9 @@ class user_DB_graph_c(base_c):
         if stringHash != None :
             self.m_Encoded = True
             self.m_stringHash = stringHash
+       
         self.LoadDics()    
-         
+       
         
         
        
@@ -102,8 +102,9 @@ class user_DB_graph_c(base_c):
             rowLine    
         ifile.close()                
         self.m_is_loaded=True
+       
                     
-        
+          
     def FindRawSubjects(self,subject1,subject2,update=False):
         ret=False
         #print "subject1=%s ,subject2=%s"%(subject1,subject2)

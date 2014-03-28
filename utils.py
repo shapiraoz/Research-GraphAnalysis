@@ -8,12 +8,12 @@ import hashlib
 
 
 nodeNameList={}
-RESULT_DIR ="results"
-log_file ="%s/graph_analysis.log"% RESULT_DIR 
+DEF_RESULT_DIR ="results"
+log_file ="%s/graph_analysis.log"% DEF_RESULT_DIR 
 startedLog=False
 IsNodeNameListInit=False
 DEF_USER_DB_FILE="data_50K.csv"
-STRING_HASH="string_hash.pkl"
+DEF_STRING_HASH="string_hash.pkl"
 
 ########################################################################
 # String util functions
@@ -50,7 +50,7 @@ def FillNodeName(graph):
 
     
 def LOG(strMsg):
-    EnsureDir(RESULT_DIR)
+    EnsureDir(DEF_RESULT_DIR)
     if not os.path.exists(log_file):
         StartLog() 
     logging.debug(strMsg)

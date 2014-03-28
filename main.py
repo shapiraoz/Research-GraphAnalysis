@@ -17,7 +17,7 @@ import pickle
 
 import data_set_creator_c
 def init():
-    utils.EnsureDir(utils.RESULT_DIR)
+    utils.EnsureDir(utils.DEF_RESULT_DIR)
     if os.path.exists(utils.log_file): 
         os.remove(utils.log_file)
         utils.StartLog()
@@ -45,16 +45,17 @@ def tests(graph):
 
 #******************main*******************
 WeHaveStringsHash =False
+ENFORCE_NUM = 1.2
 args =parser.parse_args()
 if not len(sys.argv) > 1:
     print "no arguments has insert"
     parser.print_help(None)
     sys.exit(1)
 
-if os.path.exists(utils.STRING_HASH):
+if os.path.exists(utils.DEF_STRING_HASH):
     WeHaveStringsHash = True
     print "loading encoding data...(will take time)"
-    stringHash= utils.LoadObjFromFile(utils.STRING_HASH)
+    stringHash= utils.LoadObjFromFile(utils.DEF_STRING_HASH)
     if stringHash != None:
         print "string hash have been loaded !!!"
     
@@ -88,7 +89,7 @@ else:
         users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,stringHash)
         
     else:
-        users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph) 
+        users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,None) 
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
@@ -125,6 +126,7 @@ else:
         else:
             generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,None,userDBfile)
         
+        generate_mac_table.AddFalseSubjectUsers(ENFORCE_NUM)
         generate_mac_table.GenerateMahineLearingTable()
         
         

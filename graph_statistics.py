@@ -13,10 +13,10 @@ weightDist = {}
 degreeDist = {}
 subject2Degree={}
 
-CSV_SUB_2_DEGREE = "%s/subject2degrees.csv" % utils.RESULT_DIR
-CSV_DEGREE_DIS = "%s/degree2distribution.csv" % utils.RESULT_DIR
-CSV_DEGREE_WEIGHT_CORR = "%s/degreeWeightCorrlation.csv"% utils.RESULT_DIR
-CSV_WEIGHT_FREQUENT = "%s/weightsFrequent.csv"% utils.RESULT_DIR
+CSV_SUB_2_DEGREE = "%s/subject2degrees.csv" % utils.DEF_RESULT_DIR
+CSV_DEGREE_DIS = "%s/degree2distribution.csv" % utils.DEF_RESULT_DIR
+CSV_DEGREE_WEIGHT_CORR = "%s/degreeWeightCorrlation.csv"% utils.DEF_RESULT_DIR
+CSV_WEIGHT_FREQUENT = "%s/weightsFrequent.csv"% utils.DEF_RESULT_DIR
 
 
 

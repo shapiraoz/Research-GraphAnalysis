@@ -33,10 +33,10 @@ class cluster_analysis_c (base_c) :
               
         
         if classifier!=None :
-            self.m_resultsDir ="%s/%s"% (utils.RESULT_DIR,classifier.GetName())
+            self.m_resultsDir ="%s/%s"% (utils.DEF_RESULT_DIR,classifier.GetName())
             utils.EnsureDir(self.m_resultsDir)
         else:
-            self.m_resultsDir = utils.RESULT_DIR
+            self.m_resultsDir = utils.DEF_RESULT_DIR
             
         
         self.__CSV_COMMUNITIES_SIZE_FILE="%s/communitiesSize_%s.csv" % (self.m_resultsDir,self.m_graph.name)
