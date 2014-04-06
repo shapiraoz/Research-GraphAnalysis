@@ -24,6 +24,8 @@ class generate_ml_table_c(base_c):
         self.m_userList = self.m_userDB.GetUsersGraph()
         self.m_user2subject = self.m_userDB.GetCopyUser2SubjectsDic().copy()
         self.m_user2subjectItem = self.m_user2subject.items()
+       
+        self.m_fakeUsers2Subject = {}
         
         if isGraphEncoded and stringsHash==None :
             self.LogPrint("Error can't work without object for encoded numbers... ")
@@ -48,7 +50,7 @@ class generate_ml_table_c(base_c):
         self.__TABLE_FILE_PATH = utils.DEF_RESULT_DIR + "/machine_learning_tbl.csv"
         #print "init path =%s" % self.__TABLE_FILE_PATH
         self.m_clusters_items = self.m_cluser_analysis.GetClusterGroups().items()
-        self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of user per subject "}
+        self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of users per subject (real user subjects) ",4:"fake(1) or real(0)"}
         self.m_numGroups = len(self.m_clusters_items)
         
         for i in range(0,self.m_numGroups):
@@ -66,30 +68,34 @@ class generate_ml_table_c(base_c):
     def AddFalseSubjectUsers(self,enforceCoefficient=1):
         self.LogPrint("adding fake subjects... ")
         num_users = self.m_userDB.GetNumOfDBUsers()
-        num2mul = enforceCoefficient
+        
         usersKeys= self.m_user2subject.keys()
         for user,subjects in self.m_userDB.GetUsers2SubjectDic().iteritems():
             lenSubject = len(subjects)
             addSunbject =int (lenSubject* enforceCoefficient)
-            print "addSunbject = %d real subject =%d"% (addSunbject,len(subjects)) 
+            #print "addSunbject = %d real subject =%d"% (addSunbject,len(subjects)) 
             userIndex = randint(0,num_users-1)
             selectedUserSubjectsKey = usersKeys[userIndex]
             selectedUserSubjects = self.m_user2subject[selectedUserSubjectsKey]
             ranUsrSubj=  len(selectedUserSubjects)
             if ranUsrSubj > 1 and addSunbject > 1: 
                 for i in range(addSunbject):
-                   subjectIndex= randint(0,ranUsrSubj-1)
-                   selectSubject =selectedUserSubjects[subjectIndex]
-                   #print "selectSubject = %s" % selectSubject 
-                   if not selectSubject in subjects:
-                       self.m_user2subject[user].append( selectSubject )
-                       #print "ok %s"% selectSubject
-                   else:
-                       i-=1
-                       #print "need to do something ...i=%d" % i                   
+                    subjectIndex= randint(0,ranUsrSubj-1)
+                    selectSubject =selectedUserSubjects[subjectIndex]
+                    #print "selectSubject = %s" % selectSubject 
+                    if not selectSubject in subjects:
+                        self.m_user2subject[user].append( selectSubject )
+                        if not self.m_fakeUsers2Subject.has_key(user):
+                            self.m_fakeUsers2Subject[user]=[]
+                        self.m_fakeUsers2Subject[user].append(selectSubject )
+                            
+                        #print "ok %s"% selectSubject
+                    else:
+                        i-=1
+                        #print "need to do something ...i=%d" % i                   
              
                 
-            print "users =%s have %d subject " % (user,lenSubject)
+            #print "users =%s have %d subject " % (user,lenSubject)
     
             
     def __getEncodedValue(self,strVal):
@@ -154,11 +160,12 @@ class generate_ml_table_c(base_c):
         if self.m_userDB == None:
             self.LogPring("m_userDB is empty ... can't continue will return ")
             return None
-        users2Subjects=self.m_userDB.GetCopyUser2SubjectsDic() #for performance we can replace 
+        users2Subjects=self.m_user2subject #for performance we can replace 
         self.__StartFile()
         self.m_writer.writerow(self.m_table.values())
         #for user,subjects in self.m_user2subjectItem:
-        for user in self.m_userDB.GetUsersGraph():
+        userGraphList = self.m_userDB.GetUsersGraph()
+        for user in userGraphList:
             subjects = users2Subjects[user]
             haveSubjectInGroup=[]
             for i in range(0, self.m_numGroups):
@@ -186,13 +193,22 @@ class generate_ml_table_c(base_c):
                         rowList.append(subStr) 
                     sublen= len(subjects)
                     rowList.append(sublen)
-                    users = self.m_userDB.GetUsersFromSubject(subStr)
-                    if users == None :
+                    usersFromSub = self.m_userDB.GetUsersFromSubject(subStr)
+                    if usersFromSub == None :
                         self.LogPrint("no user found for %s subject" % subStr)
                         lenUser=0
                     else:
-                        lenUser=len(users)
+                        lenUser=len(usersFromSub)
                     rowList.append(lenUser)
+                    #fake or not 
+                    if self.m_fakeUsers2Subject.has_key(user):
+                        if subject in self.m_fakeUsers2Subject[user]:
+                            rowList.append(1)
+                        else:
+                            rowList.append(0)
+                    
+                    else:
+                        rowList.append(0)                    
                     
                     #print  self.m_groupSubjectList
                     for subjectList in self.m_groupSubjectList.values():
