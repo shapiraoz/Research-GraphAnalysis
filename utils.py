@@ -39,6 +39,9 @@ def EnsureDir(d):
     if not os.path.exists(d):
         os.mkdir(d)
 
+def PathExist(path):
+    return os.path.exists(path)
+
 def FillNodeName(graph):
     global nodeNameList
     global IsNodeNameListInit
