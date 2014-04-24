@@ -14,6 +14,7 @@ import os
 import re
 import generate_ml_table_c
 import pickle
+import trainer_c
 
 import data_set_creator_c
 def init():
@@ -33,6 +34,7 @@ parser.add_argument("-d",'--dataset',action="store_true",help='create data set t
 parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
 parser.add_argument("-t","--machineTable",action="store_true",help='create machine learning table')
 parser.add_argument("-e","--encoded",action="store_true",help="graph is encoded ")
+parser.add_argument("-a","--analysis",type=file,help='machine learning talbe')
 
 icom ={}
 
@@ -59,7 +61,11 @@ if os.path.exists(utils.DEF_STRING_HASH):
     if stringHash != None:
         print "string hash have been loaded !!!"
     
-    
+if  args.analysis:
+
+    tr = trainer_c.trainer_c(args.analysis.name)
+    tr.StartTraining()
+    sys.exit()    
     
 if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
@@ -97,8 +103,7 @@ else:
     print msg
     utils.LOG(msg)
     
-    
-    
+        
     if args.dataset:
         dSc= data_set_creator_c.data_set_creator_c(users_db)
         dSc.create_data_set()
