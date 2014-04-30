@@ -36,7 +36,7 @@ class trainer_c(base_c):
         self.m_tainFile = trainTableFile
         
         self.m_columnNames=self.InitcolumnNames(self.m_tainFile)
-        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,skiprows=1, sep=',',names=self.m_columnNames)
+        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,skiprows=2, sep=',',names=self.m_columnNames)
         
     def StartTraining(self):
         X = self.m_machinePandasMatrix[self.m_machinePandasMatrix.columns - ['user']]
@@ -45,8 +45,10 @@ class trainer_c(base_c):
         x_train, y_train = X.ix[rows],Y.ix[rows]
         x_test,y_test  = X.drop(rows),Y.drop(rows)
         
-        params = {'n_estimators': 500, 'max_depth': 6,'learn_rate': 0.1, 'loss': 'huber','alpha':0.95}
-        clf = GradientBoostingRegressor(**params).fit(x_train, y_train)
+        params = {'n_estimators': 500, 'max_depth': 6,'learning_rate': 0.1, 'loss': 'huber','alpha':0.95}
+        clf = GradientBoostingRegressor(**params).fit(x_train, y_train) 
+        self.LogPrint("success to learn and create classifier")
+        
         
         
 
