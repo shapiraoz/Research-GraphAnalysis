@@ -7,6 +7,7 @@ import mmap
 import hashlib
 
 
+
 nodeNameList={}
 DEF_RESULT_DIR ="results"
 log_file ="%s/graph_analysis.log"% DEF_RESULT_DIR 
