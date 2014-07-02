@@ -9,6 +9,7 @@ from base_c import base_c
 import csv
 from sklearn.metrics import mean_squared_error,r2_score
 from sklearn.ensemble import GradientBoostingRegressor
+from atk import Util
  
 
 class trainer_c(base_c):
@@ -36,7 +37,7 @@ class trainer_c(base_c):
         self.m_tainFile = trainTableFile
         
         self.m_columnNames=self.InitcolumnNames(self.m_tainFile)
-        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,dtype={'user': np.int64,'subject':np.int64},skiprows=2, sep=',',names=self.m_columnNames)
+        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False,na_filter=False)
         
     def StartTraining(self):
         X = self.m_machinePandasMatrix[self.m_machinePandasMatrix.columns - ['user']]
@@ -52,9 +53,16 @@ class trainer_c(base_c):
         print y_train 
         clf = GradientBoostingRegressor(**params).fit(x_train, y_train) 
         self.LogPrint("success to learn and create classifier")
-        self.LogPtint("saving x_trains...")
-        utils.DumpObjToFile(clf,"classifer_obj.pkl")
+        self.LogPrint("saving x_trains...")
+        classiferFilePath = "classifer_obj.pkl"
+        utils.DumpObjToFile(clf,classiferFilePath)
+        if not utils.PathExist(classiferFilePath):
+            print "failed to save classifer..."
+        else:
+            print "classifer saved successfully " 
         
+         
+    
         
     def Analysis(self):   
         self.LogPrint("running analysis...")

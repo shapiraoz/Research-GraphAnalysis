@@ -82,6 +82,7 @@ def DumpObjToFile(obj,filePath):
     if os.path.exists(filePath):
         os.remove(filePath)
     handel = open(filePath,'wb')
+    print "fuck"
     pickle.dump(obj, handel)
     handel.close()
      
@@ -150,6 +151,6 @@ def SaveStatistics2File_DicVal(filePath ,header, dictionary):# repcate manuly...
     
     
 def EncodeString(str):
-    return int (hashlib.md5(str).hexdigest(),16)
+    return int(hashlib.md5(str).hexdigest(),16) % (10 ** 18)
     
     
