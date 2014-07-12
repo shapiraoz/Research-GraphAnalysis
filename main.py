@@ -60,12 +60,32 @@ if os.path.exists(utils.DEF_STRING_HASH):
     stringHash= utils.LoadObjFromFile(utils.DEF_STRING_HASH)
     if stringHash != None:
         print "string hash have been loaded !!!"
-    
+
+
+print "checking for data on users ..."
+userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
+if args.encoded and stringHash != None:
+    print "creating user_db_form by encoded file..."
+    users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,None,stringHash)
+else:
+    users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,None,None) 
+
+if args.dataset:
+    dSc= data_set_creator_c.data_set_creator_c(users_db)
+    dSc.create_data_set()
+    dSc.EncodedDataSet()
+    dSc.DumpDataSets()
+
+   
 if  args.analysis:
 
     tr = trainer_c.trainer_c(args.analysis.name)
-    tr.StartTraining()
+    tr.BuildClassifer()
     sys.exit()    
+
+if not args.graphPath :
+    print "graph path not entered will exist"
+    sys.exit() 
     
 if args.graphPath.name == None:
     print "no graph file have been entered ... will exit!!"
@@ -88,14 +108,15 @@ else:
         utils.LOG("clean graph(min weight %d) is with :\n %d nodes\n %d edges "%(args.weight,nodes_len,edges_len))
     
     graph_statistics.Init(workGraph)
-    print "checking for data on users ..."
-    userDBfile=args.userDB.name if args.userDB else utils.DEF_USER_DB_FILE
+    
     if args.encoded and stringHash != None:
         print "creating user_db_form by encoded file..."
         users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,stringHash)
-        
     else:
         users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,None) 
+
+    
+    
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
@@ -103,12 +124,7 @@ else:
     print msg
     utils.LOG(msg)
     
-        
-    if args.dataset:
-        dSc= data_set_creator_c.data_set_creator_c(users_db)
-        dSc.create_data_set()
-        dSc.EncodedDataSet()
-        dSc.DumpDataSets()
+       
         #dSc.DumpTestTest()
     
     if args.statistics :

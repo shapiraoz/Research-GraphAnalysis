@@ -11,7 +11,7 @@ from ctypes import util
 class data_set_creator_c( base_c ):
     
     def __init__(self,user_db ):
-        self.__DATA_SETS_DIR=utils.RESULT_DIR + "/dataSets" 
+        self.__DATA_SETS_DIR=utils.DEF_RESULT_DIR + "/dataSets" 
         self.__DATA_SETS_FILE_NAME = "dataSet%d.csv"
         self.__DATA_SETS_FILE_NAME_ENC = "dataSet%dEncoded.csv"
         self.__TEST_SETS_FILE_NAME_ENC="testSet%dEncoded.csv"

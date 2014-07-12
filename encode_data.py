@@ -27,7 +27,6 @@ def CreateNewEncodeData(dataFilePath):
 ############################################################
 
 def createHash(dataFilePath):
-    print "fuck"
     ifile  = open(dataFilePath, "rb")    
     reader = csv.reader(ifile)
     rowCont =0
