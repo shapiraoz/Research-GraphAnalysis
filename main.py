@@ -73,7 +73,7 @@ else:
 if args.dataset:
     dSc= data_set_creator_c.data_set_creator_c(users_db)
     dSc.create_data_set()
-    dSc.EncodedDataSet()
+    #dSc.EncodedDataSet()
     dSc.DumpDataSets()
 
    

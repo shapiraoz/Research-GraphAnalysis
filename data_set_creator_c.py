@@ -11,6 +11,7 @@ from ctypes import util
 class data_set_creator_c( base_c ):
     
     def __init__(self,user_db ):
+        utils.EnsureDir(utils.DEF_RESULT_DIR)
         self.__DATA_SETS_DIR=utils.DEF_RESULT_DIR + "/dataSets" 
         self.__DATA_SETS_FILE_NAME = "dataSet%d.csv"
         self.__DATA_SETS_FILE_NAME_ENC = "dataSet%dEncoded.csv"
@@ -37,21 +38,21 @@ class data_set_creator_c( base_c ):
         
         self.m_isReady=False
         self.m_isEncoded=False
+        
         #self.__DATA_SETS_FILES_NAME
         for i in range(0,self.__SPREATE_SIZE):
             self.m_usersDataSets[i]={}   
             self.m_test_sets[i]={}
+            
+            
         utils.EnsureDir(self.__DATA_SETS_DIR)
-        
+       
         
     def __SplitList(self,alist, wanted_parts=1):
         length = len(alist)
         return [ alist[i*length // wanted_parts: (i+1)*length // wanted_parts] 
              for i in range(wanted_parts) ]    
-        
-        
-        
-        
+       
     def create_data_set(self):
         ret=True
         self.LogPrint("start creating data set ...")
@@ -63,27 +64,30 @@ class data_set_creator_c( base_c ):
             return False
         #everything is ok!!!
         users2SubjectDic=self.m_user_db.GetUsers2SubjectDic()
-        
         for user , subjects in users2SubjectDic.iteritems():
             subjectLen=len(subjects)
             if not subjectLen < self.__SPREATE_SIZE:
-                #self.LogPrint("skip user %s has less them %d subjects" % (user ,self.__SPREATE_SIZE ))
-               
-                newSubjectGroups = self.__SplitList(subjects, self.__SPREATE_SIZE)
-                for i in range(0,self.__SPREATE_SIZE):
-                    for j in range(0,self.__SPREATE_SIZE):
-                        for subjectindex in newSubjectGroups[j]:
-                            if not i==j:
-                                if not self.m_usersDataSets[j].has_key(user):
-                                    self.m_usersDataSets[j][user]=[]
-                                if not subjectindex in  self.m_usersDataSets[j][user]:
-                                    self.m_usersDataSets[j][user].append(subjectindex) 
-                            else:
-                                if not self.m_test_sets[j].has_key(user):
-                                    self.m_test_sets[j][user]=[]
-                                if not subjectindex in self.m_test_sets[j][user]:
-                                    self.m_test_sets[j][user].append(subjectindex)
                 
+                              
+                newSubjectGroups = self.__SplitList(subjects, self.__SPREATE_SIZE) #split user subjects into __SPREATE_SIZE groups
+                for setIndex in range(0,self.__SPREATE_SIZE): #run on each per off testSet/DataSet
+                    # map for testSet/DataSet indication 
+                    testSetMap=[False,False,False,False,False] 
+                    testSetMap[setIndex]=True #we are
+                    for index in range(0,self.__SPREATE_SIZE): #index is pair of testset/DataSet
+                        for subjecti in newSubjectGroups[index]: 
+                            if not testSetMap[index]: #on each group decided if the subject go to testset or data set
+                               if not self.m_usersDataSets[setIndex].has_key(user):
+                                    self.m_usersDataSets[setIndex][user]=[]
+                               if not subjecti in self.m_usersDataSets[setIndex][user]:
+                                    self.m_usersDataSets[setIndex][user].append(subjecti) 
+                            else: #insert to testSet
+                                if not self.m_test_sets[setIndex].has_key(user):
+                                    self.m_test_sets[setIndex][user]=[]
+                                if not subjecti in self.m_test_sets[setIndex][user]:
+                                    self.m_test_sets[setIndex][user].append(subjecti)
+        
+                               
         self.m_isReady=True
         return ret
 
@@ -129,7 +133,7 @@ class data_set_creator_c( base_c ):
         return encodedSet
         
         
-    #need to finish
+    #encodeding dataSet/Train set 
     def EncodedDataSet(self):
         if not self.m_isReady:
             self.LogPrint("can't dump dataSet files... data sets are not ready")
