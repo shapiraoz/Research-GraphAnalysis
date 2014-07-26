@@ -44,7 +44,7 @@ class trainer_c(base_c):
         self.m_params =  {'n_estimators': 500, 'max_depth': 6,'learning_rate': 0.1, 'loss': 'huber','alpha':0.95}
         
         
-    def BuildClassifer(self,predictCol):
+    def BuildClassifer(self,predictCol='fake(0) or real(1)'):
        self.m_Y = self.m_machinePandasMatrix[predictCol]
        self.LogPrint ("building classifer...")         
        self.m_clf = GradientBoostingRegressor(**params).fit(self.m_X, self.m_Y)           
@@ -58,20 +58,29 @@ class trainer_c(base_c):
            else:
                print "classifer saved successfully " 
                
-         
+    def RunPredict(self,testSetFile):
+        if not utils.PathExist(testSetFile):
+            self.LogPrint("missing machine learning table file for testset...")
+            return None
+        testSetCln = self.InitcolumnNames(testSetFile)
+        testPdCsv = pd.read_csv(testSetFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False,na_filter=False)
+        testSetVal = testPdCsv[testSetCln - ['user']]
+        if testSetVal !=None :
+            predictRes = self.__Predict(testSetVal)
+                        
+              
        
-    def Predict(self, testSet):
+       
+       
+    def __Predict(self, testSet):
         if self.m_clf == None :
             self.LogPrint("trainer was not init...will exit");
             return -1
         
         ret =  self.m_clf.predict(testSet); 
-        reslRes = self.m_clf.predict(m_X)
-        mse = mean_squared_error(y_test,reslRes )
-        r2 = r2_score(y_test, reslRes)
- 
-        print("MSE: %.4f" % mse)
-        print("R2: %.4f" % r2)
+        return self.m_clf.predict(m_X)
+        
+        
         
      
         

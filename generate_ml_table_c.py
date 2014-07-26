@@ -50,7 +50,7 @@ class generate_ml_table_c(base_c):
         self.__TABLE_FILE_PATH = utils.DEF_RESULT_DIR + "/machine_learning_tbl.csv"
         #print "init path =%s" % self.__TABLE_FILE_PATH
         self.m_clusters_items = self.m_cluser_analysis.GetClusterGroups().items()
-        self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of users per subject (real user subjects) ",4:"fake(1) or real(0)"}
+        self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of users per subject (real user subjects) ",4:"fake(0) or real(1)"}
         self.m_numGroups = len(self.m_clusters_items)
         
         for i in range(0,self.m_numGroups):
@@ -143,25 +143,30 @@ class generate_ml_table_c(base_c):
             groupSubjects.append(self.__getEncodedValue(subjectinGroup))
         return groupSubjects
     
-    def __StartFile(self):
+    def __StartFile(self,filePath=None):
         
-        if os.path.exists(self.__TABLE_FILE_PATH):
-            os.remove(self.__TABLE_FILE_PATH)
+        if filePath==None:
+            filePath=self.__TABLE_FILE_PATH
+        
+        if os.path.exists(filePath):
+            os.remove(filePath)
+        
+        
             
-        self.m_csvFile = open(self.__TABLE_FILE_PATH,"wb")
+        self.m_csvFile = open(filePath,"wb")
         self.m_writer = csv.writer(self.m_csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-        print "opening file %s"% self.__TABLE_FILE_PATH
+        print "opening file %s"% filePath
         #self.m_writer.writerow(self.m_table.values())
         return self.m_writer
         
     
-    def GenerateMahineLearingTable(self):
+    def GenerateMahineLearingTable(self,filePath):
         
         if self.m_userDB == None:
             self.LogPring("m_userDB is empty ... can't continue will return ")
             return None
         users2Subjects=self.m_user2subject #for performance we can replace 
-        self.__StartFile()
+        self.__StartFile(filePath)
         self.m_writer.writerow(self.m_table.values())
         #for user,subjects in self.m_user2subjectItem:
         userGraphList = self.m_userDB.GetUsersGraph()
@@ -203,9 +208,9 @@ class generate_ml_table_c(base_c):
                     #fake or not 
                     if self.m_fakeUsers2Subject.has_key(user):
                         if subject in self.m_fakeUsers2Subject[user]:
-                            rowList.append(1)
-                        else:
                             rowList.append(0)
+                        else:
+                            rowList.append(1)
                     
                     else:
                         rowList.append(0)                    

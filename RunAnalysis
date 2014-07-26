@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo running full analysis. 
+dataPath=TestTrainSet
+graphSuffix=csvpinterest_clean.graphml
+cnt=5
+
+for i in {0..4};
+do
+	echo create machine learing table 
+	echo python main.py -g -u dataset$i.csv  dataSet$i.$graphSuffix -c -w 5 -t machine_train_tbl$i.csv 
+	#python main.py -g 	
+done 
+
+
+

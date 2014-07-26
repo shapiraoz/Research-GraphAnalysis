@@ -32,9 +32,11 @@ parser.add_argument("-c",'--cluster',action="store_true",help='run clustring ana
 parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight for cleaning the graph")
 parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
 parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
-parser.add_argument("-t","--machineTable",action="store_true",help='create machine learning table')
+parser.add_argument("-t","--machineTable",help='create machine learning table input filePath')
 parser.add_argument("-e","--encoded",action="store_true",help="graph is encoded ")
-parser.add_argument("-a","--analysis",type=file,help='machine learning talbe')
+parser.add_argument("-a","--analysis",type=file,help='train set machine learning talbe')
+parser.add_argument("-f","--addFake",action="store_true",help="add fake to the machine learing table")
+parser.add_argument("-p","--predict",type=file,help='test test machine learing talb')
 
 icom ={}
 
@@ -81,6 +83,14 @@ if  args.analysis:
 
     tr = trainer_c.trainer_c(args.analysis.name)
     tr.BuildClassifer()
+    print "done building classifier !"
+    if args.predict:
+        predictRes= tr.RunPredict(args.predict.name)
+        if predictRes==None:
+            print "failed to run prediction ... no results"
+            ''' 
+                need to add action on prediction 
+            '''
     sys.exit()    
 
 if not args.graphPath :
@@ -114,9 +124,6 @@ else:
         users_db = users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,stringHash)
     else:
         users_db=users_DB_graph_c.user_DB_graph_c(userDBfile,workGraph,None) 
-
-    
-    
      
     print "number of users in data file is %d"%users_db.GetNumOfDBUsers()
     num_of_users_in_graph =users_db.GetNumUsersGraph()
@@ -147,8 +154,13 @@ else:
         else:
             generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,None,userDBfile)
         
-        generate_mac_table.AddFalseSubjectUsers(ENFORCE_NUM)
-        generate_mac_table.GenerateMahineLearingTable()
+        if args.addFake:       
+            generate_mac_table.AddFalseSubjectUsers(ENFORCE_NUM)
+        if args.machineTable.name==None:
+            print "no file path have been supplied , will create new at machine_tbl.csv"
+            machine_tbl_file_path = "machine_tbl.csv"
+        machine_tbl_file_path=args.machineTable.name
+        generate_mac_table.GenerateMahineLearingTable(machine_tbl_file_path)
         
         
         #classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
