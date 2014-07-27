@@ -10,7 +10,7 @@ import csv
 from sklearn.metrics import mean_squared_error,r2_score
 from sklearn.ensemble import GradientBoostingRegressor
 from atk import Util
-import matplotlib.pyplot as plt
+
  
 
 class trainer_c(base_c):
@@ -45,18 +45,19 @@ class trainer_c(base_c):
         
         
     def BuildClassifer(self,predictCol='fake(0) or real(1)'):
-       self.m_Y = self.m_machinePandasMatrix[predictCol]
-       self.LogPrint ("building classifer...")         
-       self.m_clf = GradientBoostingRegressor(**params).fit(self.m_X, self.m_Y)           
-       if not self.m_clf == None:
-           self.LogPrint("success to learn and create classifier")
-           self.LogPrint("saving x_trains...")
-           classiferFilePath = "classifer_obj.pkl"
-           utils.DumpObjToFile(clf,classiferFilePath)
-           if not utils.PathExist(classiferFilePath):
-               print "failed to save classifer..."
-           else:
-               print "classifer saved successfully " 
+        
+        self.m_Y = self.m_machinePandasMatrix[predictCol]
+        self.LogPrint ("building classifer...")         
+        self.m_clf = GradientBoostingRegressor(**self.m_params).fit(self.m_X, self.m_Y)           
+        if not self.m_clf == None:
+            self.LogPrint("success to learn and create classifier")
+            self.LogPrint("saving x_trains...")
+            classiferFilePath = "classifer_obj.pkl"
+            utils.DumpObjToFile(self.m_clf ,classiferFilePath)
+            if not utils.PathExist(classiferFilePath):
+                print "failed to save classifer..."
+            else:
+                print "classifer saved successfully " 
                
     def RunPredict(self,testSetFile):
         if not utils.PathExist(testSetFile):
@@ -67,7 +68,8 @@ class trainer_c(base_c):
         testSetVal = testPdCsv[testSetCln - ['user']]
         if testSetVal !=None :
             predictRes = self.__Predict(testSetVal)
-                        
+            print predictRes
+            return predictRes
               
        
        
@@ -78,9 +80,8 @@ class trainer_c(base_c):
             return -1
         
         ret =  self.m_clf.predict(testSet); 
-        return self.m_clf.predict(m_X)
-        
-        
+        return self.m_clf.predict(self.m_X)
+          
         
      
         
@@ -89,7 +90,7 @@ class trainer_c(base_c):
         
 
     def LoadClassifer(self,clsObjFilePath):
-        if not utils.path_exists(clsObjFilePath):
+        if not utils.PathExist(clsObjFilePath):
             self.LogPrint("no trainer classiifer found will exit")
             return -1
         cls =  utils.LoadObjFromFile(clsObjFilePath);

@@ -51,6 +51,7 @@ def gen_node(name, node_type, graph):
 parser = argparse.ArgumentParser(description='parse to graph ')
 parser.add_argument("-d",'--dataFilePath' ,type=file,help='csv data file for creating graph in graphal format')
 
+
 args =parser.parse_args()
 
 dataFilePath=args.dataFilePath.name if args.dataFilePath.name!=None else 'data.csv'
@@ -140,8 +141,8 @@ for edge in pinterest_graph.edges(data=True):
 
 nodes_to_remove = [n for n in interests_degrees_vector if (interests_degrees_vector[n] == 0)]
 pinterest_graph.remove_nodes_from(nodes_to_remove)
-
-nx.write_graphml(pinterest_graph, 'pinterest_clean.graphml')
+graphfilePath =dataFilePath +".graphml"
+nx.write_graphml(pinterest_graph,graphfilePath)
 ########################################################################
 stats['nodes_after_clean'] = len(pinterest_graph.nodes())
 stats['edges_after_clean'] = len(pinterest_graph.edges())

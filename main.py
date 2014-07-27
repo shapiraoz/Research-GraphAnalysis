@@ -156,11 +156,8 @@ else:
         
         if args.addFake:       
             generate_mac_table.AddFalseSubjectUsers(ENFORCE_NUM)
-        if args.machineTable.name==None:
-            print "no file path have been supplied , will create new at machine_tbl.csv"
-            machine_tbl_file_path = "machine_tbl.csv"
-        machine_tbl_file_path=args.machineTable.name
-        generate_mac_table.GenerateMahineLearingTable(machine_tbl_file_path)
+	      
+        generate_mac_table.GenerateMahineLearingTable(args.machineTable)
         
         
         #classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)

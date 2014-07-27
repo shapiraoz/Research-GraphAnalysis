@@ -7,7 +7,7 @@ from base_c import base_c
 import csv
 import re
 import utils
-from UserList import UserList
+
 
 class user_DB_graph_c(base_c):
 

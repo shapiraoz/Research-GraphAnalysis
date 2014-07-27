@@ -94,7 +94,7 @@ class generate_ml_table_c(base_c):
                         i-=1
                         #print "need to do something ...i=%d" % i                   
              
-                
+        self.LogPrint("finish adding fake subject rate =%0.2f"%enforceCoefficient)        
             #print "users =%s have %d subject " % (user,lenSubject)
     
             
@@ -243,13 +243,15 @@ class generate_ml_table_c(base_c):
                 #print "row is =", rowList
                 #print "==================================================================================================="
                 self.m_writer.writerow(rowList)
+                
             # for i in range(0,self.m_numGroups):
                 #print "index=%d"%i
                 #toInser=1 if haveSubjectInGroup[i] else 0
                 #rowList.append(toInser)
             
             
-        self.m_csvFile.close()                    
+        self.m_csvFile.close()
+        self.LogPrint("!done create machine learing table is done - closing file %s"%filePath)                    
                         
                 
                     
