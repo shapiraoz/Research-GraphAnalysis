@@ -11,6 +11,7 @@ from sklearn.metrics import mean_squared_error,r2_score
 from sklearn.ensemble import GradientBoostingRegressor
 from atk import Util
 
+PRDICT_COL='fake(0) or real(1)'
  
 
 class trainer_c(base_c):
@@ -44,7 +45,7 @@ class trainer_c(base_c):
         self.m_params =  {'n_estimators': 500, 'max_depth': 6,'learning_rate': 0.1, 'loss': 'huber','alpha':0.95}
         
         
-    def BuildClassifer(self,predictCol='fake(0) or real(1)'):
+    def BuildClassifer(self,predictCol=PRDICT_COL):
         
         self.m_Y = self.m_machinePandasMatrix[predictCol]
         self.LogPrint ("building classifer...")         
@@ -65,12 +66,19 @@ class trainer_c(base_c):
             return None
         testSetCln = self.InitcolumnNames(testSetFile)
         testPdCsv = pd.read_csv(testSetFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False,na_filter=False)
-        testSetVal = testPdCsv[testSetCln - ['user']]
-        if testSetVal !=None :
-            predictRes = self.__Predict(testSetVal)
-            print predictRes
-            return predictRes
-              
+        testSetVal = testPdCsv[testPdCsv.columns- ['user']]
+        predictRes = self.__Predict(testSetVal)
+        
+        print predictRes
+        '''
+        mse= mean_squared_error(testPdCsv[PRDICT_COL],predictRes) #need to fix 
+        r2 =r2_score(testPdCsv[PRDICT_COL],predictRes)
+        print "predict results "
+        print "mse="+mse
+        print  "r2="+r2  
+        '''
+        return predictRes
+        
        
        
        

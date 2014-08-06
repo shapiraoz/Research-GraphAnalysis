@@ -10,11 +10,14 @@ import csv
 import os
 
 
+
+
 class generate_ml_table_c(base_c):
     
     def __init__(self , graph , cluster_analysis = None , isGraphEncoded = False , stringsHash = None , usersDB = None , dataFilePath = None):
         
         self.LogPrint("Init all machine learning table creator components ....")
+        self.m_graph = graph
         if usersDB==None and dataFilePath != None:
             self.LogPrint("no user DB ,will create user DB ")
             self.m_userDB = users_DB_graph_c.user_DB_graph_c(dataFilePath,graph)
@@ -50,7 +53,14 @@ class generate_ml_table_c(base_c):
         self.__TABLE_FILE_PATH = utils.DEF_RESULT_DIR + "/machine_learning_tbl.csv"
         #print "init path =%s" % self.__TABLE_FILE_PATH
         self.m_clusters_items = self.m_cluser_analysis.GetClusterGroups().items()
-        self.m_table={0:"user",1:"subject",2:"number of subject per user",3:"number of users per subject (real user subjects) ",4:"fake(0) or real(1)"}
+        self.m_table={0:"user",
+                      1:"subject",
+                      2:"number of subject per user",
+                      3:"number of users per subject (real user subjects) ",
+                      4:"fake(0) or real(1)"
+                      }
+        
+        
         self.m_numGroups = len(self.m_clusters_items)
         
         for i in range(0,self.m_numGroups):
@@ -106,6 +116,19 @@ class generate_ml_table_c(base_c):
             return None
         return self.m_stringHash[varHash]
     
+    
+    
+    def __getSubjectCluster(self,subject):
+        if len(self.m_groupSubjectList)==0:
+            self.LogPrint("ERROR self.m_groupSubjectList is empty")
+            return None
+        for groupName , subjects in self.m_groupSubjectList.items():
+            if subject in subjects:
+                return groupName
+        
+        return -1
+            
+    
     def __init_GroupBlongToUsers(self):
         if self.m_userDB == None or self.m_cluser_analysis == None :
             self.LogPrint("missing userDb or clustering ... will return ...")
@@ -143,21 +166,87 @@ class generate_ml_table_c(base_c):
             groupSubjects.append(self.__getEncodedValue(subjectinGroup))
         return groupSubjects
     
-    def __StartFile(self,filePath=None):
+    def __StartFile(self,fileHandle=None):
         
-        if filePath==None:
-            filePath=self.__TABLE_FILE_PATH
+        if fileHandle==None:
+            return None
+        
+        #if os.path.exists(filePath):
+        #    os.remove(filePath)
+        
+        
+            
+        #self.m_csvFile = open(filePath,"wb")
+        writer = csv.writer(fileHandle,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
+        #print "opening file %s"% filePath
+        #self.m_writer.writerow(self.m_table.values())
+        return writer
+        
+    #not coded on the fly is supported 
+    def GenerateMachineLearingTestTable(self,testDataFilePath,filePath):
         
         if os.path.exists(filePath):
             os.remove(filePath)
         
+        csv_H = open(filePath,"wb")
+        writer = self.__StartFile(csv_H)
+        writer.writerow(self.m_table.values())
+        print "test Set file is=%s"% testDataFilePath
         
+        if not os.path.exists(testDataFilePath):
+            self.LogPrint("ERROR :missing test set data graph...")
+            return
+        
+        testuserDb = users_DB_graph_c.user_DB_graph_c(testDataFilePath,self.m_graph)
+        testUser2SubDic= testuserDb.GetUsers2SubjectDic().copy()
+        trainUser2SubDic = self.m_user2subject
+        skipSubjects =0
+        totalSubject=0
+        outsideSubject=[]
+        for user,subjects in testUser2SubDic.items():
+            #running on each user
+            for subject in subjects :
+                totalSubject+=1
+                rowlist=[]
+                rowlist.append(user)
+                rowlist.append(subject)
+                rowlist.append(len(subjects))
+                if not user in trainUser2SubDic.keys():
+                    self.LogPrint("Error the user%s in not in the train set graph , please check data "% user)
+                    continue
+                usersFromSubList = self.m_userDB.GetUsersFromSubject(subject)
+                if usersFromSubList==None:
+                    self.LogPrint("subjet not exist...will skip this row ")
+                    skipSubjects+=1
+                    outsideSubject.append(subject)
+                    continue
+                rowlist.append(len( usersFromSubList))
+                rowlist.append(1) #the testing column
+                for subjectList in self.m_groupSubjectList.values():
+                                            
+                        if subject in subjectList:
+                            existIn =1
+                            #print "found %s in group %s index list = %d r" %(subStr,groupName,indexGroup)
+                        else:
+                            existIn = 0
+                        rowlist.append(existIn)
+                #add to column if user exist in at clusterX 
+                for group in self.m_clusterGroups:
+                    groupName = group[0]
+                    
+                    if self.m_userInGroup.has_key(user):
+                        if groupName in  self.m_userInGroup[user]:
+                            rowlist.append(1)
+                        else:
+                            rowlist.append(0)
+                    else:
+                        rowlist.append(0)
+                writer.writerow(rowlist)
+                
+        
+        csv_H.close()
+        self.LogPrint("done creating machine learning table total subject that didn't found at trainSet:%d total subjects=%d"% (skipSubjects,totalSubject))
             
-        self.m_csvFile = open(filePath,"wb")
-        self.m_writer = csv.writer(self.m_csvFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-        print "opening file %s"% filePath
-        #self.m_writer.writerow(self.m_table.values())
-        return self.m_writer
         
     
     def GenerateMahineLearingTable(self,filePath):
@@ -166,7 +255,12 @@ class generate_ml_table_c(base_c):
             self.LogPring("m_userDB is empty ... can't continue will return ")
             return None
         users2Subjects=self.m_user2subject #for performance we can replace 
-        self.__StartFile(filePath)
+        if os.path.exists(filePath):
+            os.remove(filePath)
+        
+        csv_H = open(filePath,"wb")
+        
+        self.m_writer= self.__StartFile(csv_H)
         self.m_writer.writerow(self.m_table.values())
         #for user,subjects in self.m_user2subjectItem:
         userGraphList = self.m_userDB.GetUsersGraph()
@@ -177,7 +271,7 @@ class generate_ml_table_c(base_c):
                 haveSubjectInGroup.append(False)
             for subject in subjects:
                 rowList=[]
-                #usrStr = self.__getEncodedValue(user) if self.m_isGraphEncoded else user
+                #for in case we what to coded our data on the fly  
                 usrStr = user
                 if usrStr != None:
                     if self.m_isGraphEncoded:
@@ -224,11 +318,7 @@ class generate_ml_table_c(base_c):
                         else:
                             existIn = 0
                         rowList.append(existIn)
-                        #print "row list =", rowList
-                        
-                        #if existIn == 1:
-                        #   haveSubjectInGroup[indexGroup] = True
-                        #indexGroup+=1
+                #add to column if user exist in at clusterX 
                 for group in self.m_clusterGroups:
                     groupName = group[0]
                     
@@ -250,7 +340,7 @@ class generate_ml_table_c(base_c):
                 #rowList.append(toInser)
             
             
-        self.m_csvFile.close()
+        csv_H.close()
         self.LogPrint("!done create machine learing table is done - closing file %s"%filePath)                    
                         
                 

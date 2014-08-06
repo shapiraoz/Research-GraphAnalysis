@@ -32,11 +32,13 @@ parser.add_argument("-c",'--cluster',action="store_true",help='run clustring ana
 parser.add_argument("-w",'--weight',type=int,default=1,help="set minimum weight for cleaning the graph")
 parser.add_argument("-d",'--dataset',action="store_true",help='create data set train set from all data')
 parser.add_argument("-u",'--userDB',type=file,help='load users file data (csv format')
-parser.add_argument("-t","--machineTable",help='create machine learning table input filePath')
+parser.add_argument("-m","--machineTable",help='create machine learning table input filePath')
+parser.add_argument("-ut","--testSet_userDb",type=file,help="test userdb for creating test set")
+parser.add_argument("-mt","--testSet_MachineTable",help='creating testSet machine learning table (by given testData Set)\n will be only only after machine learning creation  ')
 parser.add_argument("-e","--encoded",action="store_true",help="graph is encoded ")
 parser.add_argument("-a","--analysis",type=file,help='train set machine learning talbe')
-parser.add_argument("-f","--addFake",action="store_true",help="add fake to the machine learing table")
-parser.add_argument("-p","--predict",type=file,help='test test machine learing talb')
+parser.add_argument("-f","--addFake",action="store_true",help="add fake to the machine learning table")
+parser.add_argument("-p","--predict",type=file,help='test test machine learning talb')
 
 icom ={}
 
@@ -85,6 +87,7 @@ if  args.analysis:
     tr.BuildClassifer()
     print "done building classifier !"
     if args.predict:
+        print "going to predict "+args.predict.name
         predictRes= tr.RunPredict(args.predict.name)
         if predictRes==None:
             print "failed to run prediction ... no results"
@@ -149,16 +152,23 @@ else:
     if args.machineTable:
         cl_an = cluster_best_analysis if cluster_best_analysis!=None else None
         if users_db != None:
-            generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,users_db,None)
+            ml_generator = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,users_db,None)
             
         else:
-            generate_mac_table = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,None,userDBfile)
+            ml_generator = generate_ml_table_c.generate_ml_table_c(workGraph,cl_an,args.encoded,stringHash,None,userDBfile)
         
-        if args.addFake:       
-            generate_mac_table.AddFalseSubjectUsers(ENFORCE_NUM)
-	      
-        generate_mac_table.GenerateMahineLearingTable(args.machineTable)
+        if args.addFake:    #adding fake subject to each user   
+            ml_generator.AddFalseSubjectUsers(ENFORCE_NUM)
+	   
+        ml_generator.GenerateMahineLearingTable(args.machineTable)
         
+        if args.testSet_MachineTable :
+            if not args.testSet_userDb:
+                print "missing testsetDb ...cant create test machine learning table"
+                sys.exit()
+            else:
+                print args.testSet_userDb
+                ml_generator.GenerateMachineLearingTestTable(args.testSet_userDb.name, args.testSet_MachineTable)
         
         #classifier_networkX = classifier_c.classifier_c(copyGraph,"networkx",classifier_c.classifier_type_e.e_networkx)
         #cluster_best_analysisNetworkx = cluster_analysis_c.cluster_analysis_c(copyGraph,classifier_networkX)
