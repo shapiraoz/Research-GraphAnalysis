@@ -69,14 +69,16 @@ class trainer_c(base_c):
         testSetVal = testPdCsv[testPdCsv.columns- ['user']]
         predictRes = self.__Predict(testSetVal)
         
-        print predictRes
-        '''
+        #print predictRes
+    
+        
         mse= mean_squared_error(testPdCsv[PRDICT_COL],predictRes) #need to fix 
         r2 =r2_score(testPdCsv[PRDICT_COL],predictRes)
+        
         print "predict results "
-        print "mse="+mse
-        print  "r2="+r2  
-        '''
+        print "mse=",mse
+        print  "r2=",r2  
+        
         return predictRes
         
        
@@ -88,7 +90,7 @@ class trainer_c(base_c):
             return -1
         
         ret =  self.m_clf.predict(testSet); 
-        return self.m_clf.predict(self.m_X)
+        return ret
           
         
      

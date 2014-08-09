@@ -216,7 +216,7 @@ class generate_ml_table_c(base_c):
                     continue
                 usersFromSubList = self.m_userDB.GetUsersFromSubject(subject)
                 if usersFromSubList==None:
-                    self.LogPrint("subjet not exist...will skip this row ")
+                    #self.LogPrint("subjet not exist...will skip this row ")
                     skipSubjects+=1
                     outsideSubject.append(subject)
                     continue
