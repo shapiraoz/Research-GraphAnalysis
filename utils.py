@@ -14,7 +14,7 @@ log_file ="%s/graph_analysis.log"% DEF_RESULT_DIR
 startedLog=False
 IsNodeNameListInit=False
 DEF_USER_DB_FILE="data_50K.csv"
-DEF_STRING_HASH="string_hash_300.pkl"
+DEF_STRING_HASH="string_hash.pkl"
 
 ########################################################################
 # String util functions
