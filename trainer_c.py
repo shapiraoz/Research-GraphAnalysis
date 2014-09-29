@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import random
@@ -10,14 +9,10 @@ from sklearn.ensemble import GradientBoostingRegressor
 from atk import Util
 
 PRDICT_COL='fake(0) or real(1)'
- 
-
 class trainer_c(base_c):
-    
     
     def InitcolumnNames(self,trainTableFile,x_trianerFile="x_train.pkl",y_trainerFile="y_train.pkl"):
         columnNames =[]
-        
         ifile  = open(trainTableFile, "rb")
         reader = csv.reader(ifile)
         rowNum = 0
@@ -38,9 +33,9 @@ class trainer_c(base_c):
         self.m_tainFile = trainTableFile
         
         self.m_columnNames=self.InitcolumnNames(self.m_tainFile)
-        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False,na_filter=False)
+        self.m_machinePandasMatrix = pd.read_csv(trainTableFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False)   #,na_filter=False)
         self.m_clf = None
-        self.m_X = self.m_machinePandasMatrix[self.m_machinePandasMatrix.columns - ['user']]
+        self.m_X = self.m_machinePandasMatrix[self.m_machinePandasMatrix.columns-[PRDICT_COL]]
         self.m_params =  {'n_estimators': 500, 'max_depth': 6,'learning_rate': 0.1, 'loss': 'huber','alpha':0.95}
         self.m_trainFilePath = trainTableFile
         self.m_testSetFilePath = None
@@ -61,15 +56,17 @@ class trainer_c(base_c):
                 print "failed to save classifer..."
             else:
                 print "classifer saved successfully " 
-               
+                                                                                                
     def RunPredict(self,testSetFile):
         if not utils.PathExist(testSetFile):
             self.LogPrint("missing machine learning table file for testset...")
             return None
         self.m_testSetFilePath = testSetFile
         testSetCln = self.InitcolumnNames(testSetFile)
-        testPdCsv = pd.read_csv(testSetFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False,na_filter=False)
-        testSetVal = testPdCsv[testPdCsv.columns- ['user']]
+        testPdCsv = pd.read_csv(testSetFile,dtype={'user': np.int,'subject':np.int},skiprows=2, sep=',',names=self.m_columnNames,encoding='utf8',infer_datetime_format=False)#,na_filter=False)
+        testSetVal =  testPdCsv.drop([PRDICT_COL],axis=1)# testPdCsv[testPdCsv.columns - [PRDICT_COL]]
+        
+        #print testSetVal
         predictRes = self.__Predict(testSetVal)
         self.__build_prediction_files(testPdCsv,predictRes)
         
@@ -89,13 +86,13 @@ class trainer_c(base_c):
         return predictRes
               
        
-    def __build_prediction_files(self,testMatrix,testPd):
+    def __build_prediction_files(self,testMatrix,resultColum):
         
         
         #self.LogPrint("building prediction file acording to %s and %s" % ( self.m_trainFilePath,self.m_testSetFilePath) )
         
-        print testPd
-        numberRow = len(testPd)
+        #print resultColum
+        numberRow = len(resultColum)
         #print "numberRow =%s len of all matrix =%s " % (numberRow, len(testMatrix))
         hFile = open(self.m_testSetFilePath+"_predict.csv","wb")
         writer= csv.writer(hFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
@@ -106,7 +103,7 @@ class trainer_c(base_c):
             user  = testMatrix.ix[i][0]
             subject = testMatrix.ix[i][1]
             real = testMatrix.ix[i][4]
-            predicit = testPd[i]
+            predicit = resultColum[i]
             
             #print "user=%s , subject = %s ,fake=%s" %(user,subject,fake_q)
             writer.writerow([user,subject,real,predicit])
@@ -149,4 +146,4 @@ class trainer_c(base_c):
             self.LogPrint("trainer load classifer!!!")
 
 
-       
+
