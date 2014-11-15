@@ -45,8 +45,14 @@ class trainer_c(base_c):
     def BuildClassifer(self,predictCol=PRDICT_COL):
         
         self.m_Y = self.m_machinePandasMatrix[predictCol]
-        self.LogPrint ("building classifer...")         
-        self.m_clf = GradientBoostingRegressor(**self.m_params).fit(self.m_X, self.m_Y)           
+        self.LogPrint ("building classifer...")
+        try:
+            self.m_clf = GradientBoostingRegressor(**self.m_params).fit(self.m_X, self.m_Y)
+        except:
+            self.LogPrint('exception is appen when building the classifer .... len of m_x=%d'%len(self.m_X))
+            self.LogPrint('need to check the x type ' +self.m_x)                        
+            
+            
         if not self.m_clf == None:
             self.LogPrint("success to learn and create classifier")
             self.LogPrint("saving x_trains...")
@@ -90,26 +96,31 @@ class trainer_c(base_c):
         
         
         #self.LogPrint("building prediction file acording to %s and %s" % ( self.m_trainFilePath,self.m_testSetFilePath) )
-        
+        try : 
         #print resultColum
-        numberRow = len(resultColum)
-        #print "numberRow =%s len of all matrix =%s " % (numberRow, len(testMatrix))
-        hFile = open(self.m_testSetFilePath+"_predict.csv","wb")
-        writer= csv.writer(hFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(['user','subject','real','prediction'])
-        
-        self.LogPrint("writing prediction table..")
-        for i in range(0,numberRow):
-            user  = testMatrix.ix[i][0]
-            subject = testMatrix.ix[i][1]
-            real = testMatrix.ix[i][4]
-            predicit = resultColum[i]
+            numberRow = len(resultColum)
+            #print "numberRow =%s len of all matrix =%s " % (numberRow, len(testMatrix))
+            hFile = open(self.m_testSetFilePath+"_predict.csv","wb")
+            writer= csv.writer(hFile,delimiter=",",quotechar='\n', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['user','subject','real','prediction'])
             
-            #print "user=%s , subject = %s ,fake=%s" %(user,subject,fake_q)
-            writer.writerow([user,subject,real,predicit])
-        hFile.close()
-        self.LogPrint("done!")
-        
+            self.LogPrint("writing prediction table..")
+            for i in range(0,numberRow):
+                try:
+                    user  = testMatrix.ix[i][0]
+                    subject = testMatrix.ix[i][1]
+                    real = testMatrix.ix[i][4]
+                    predicit = resultColum[i]
+                except:
+                    self.LogPrint("problem at index %s" %i)
+                    continue
+                #print "user=%s , subject = %s ,fake=%s" %(user,subject,fake_q)
+                writer.writerow([user,subject,real,predicit])
+            hFile.close()
+            self.LogPrint("done!")
+        except:
+            self.LogPrint("exception in o build prediction files")
+            pass
         
            
         
@@ -123,11 +134,16 @@ class trainer_c(base_c):
                 
        
     def __Predict(self, testSet):
+        ret = None
         if self.m_clf == None :
             self.LogPrint("trainer was not init...will exit");
             return -1
+        try :
+            ret =  self.m_clf.predict(testSet); 
+        except:
+            self.LogPrint("exception in prediction ...",sys.exc_info()[0])    
         
-        ret =  self.m_clf.predict(testSet); 
+        
         return ret
           
      

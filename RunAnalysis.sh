@@ -54,13 +54,14 @@ app=main.py
 
 
 
-for i in {0..4};
+for i in {1..1};
 do
-	echo create machine learing table 
-	python $app -u $dataPath/dataSet$i.csv -s -g $dataPath/dataSet$i.$graphSuffix -c -w $wight -m $dataPath/machine_train_tbl$i.csv -f -mt $dataPath/machine_test_tbl$i.csv -ut $dataPath/testSet$i.csv > $dataPath/stat_analysis_$i.log 
-	 cp -r -f results $dataPath/results$i 
+	#echo create machine learing table 
+	#python $app -u $dataPath/dataSet$i.csv -s -g $dataPath/dataSet$i.$graphSuffix -c -w $wight -m $dataPath/machine_train_tbl$i.csv -f -mt $dataPath/machine_test_tbl$i.csv -ut $dataPath/testSet$i.csv > $dataPath/stat_analysis_$i.log 
+	# cp -r -f results $dataPath/results$i 
 	#python $app -u $dataPath/testSet$i.csv -g $dataPath/testSet$i.$graphSuffix -c -w $wight -t machine_test_tbl$i.csv 
-	python $app -a $dataPath/machine_train_tbl$i.csv -p $dataPath/machine_test_tbl$i.csv > $dataPath/result_analysis_$i.log 
+	echo train classifiers...
+        python $app -a $dataPath/machine_train_tbl$i.csv -p $dataPath/machine_test_tbl$i.csv  #> $dataPath/result_analysis_$i.log 
 	cp -f classifer_obj.pkl $dataPath/classifer_obj$i.pkl
 	#python parse_to_graph.py -d $dataPath/dataSet$i.csv 
 	#python parse_to_graph.py -d $dataPath/testSet$i.csv

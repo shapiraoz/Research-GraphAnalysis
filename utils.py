@@ -15,6 +15,7 @@ startedLog=False
 IsNodeNameListInit=False
 DEF_USER_DB_FILE="data_50K.csv"
 DEF_STRING_HASH="string_hash.pkl"
+FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
 
 ########################################################################
 # String util functions
@@ -62,7 +63,7 @@ def LOG(strMsg):
 def StartLog():
     global startedLog
     print "starting log file..."
-    logging.basicConfig(filename=log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=log_file,level=logging.DEBUG,format = FORMAT)
     startedLog=True
 
 

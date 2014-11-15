@@ -23,3 +23,5 @@ for /L %%i IN (0,1,4) DO (
 	python %app% -a %dataPath%/machine_train_tbl%i%.csv -p %dataPath%/machine_test_tbl%i%.csv > %dataPath%/result_analysis_%i%.log
 	
 )
+
+echo complete analysis on %dataPath%
